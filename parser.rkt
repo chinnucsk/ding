@@ -1,10 +1,11 @@
 #lang racket
 
 (provide (struct-out IRCmsg))
-(provide parse-irc-line to-string to-bytes)
+(provide parse-irc-line to-string to-bytes get-nick)
 (provide parser-tests)
 
 (require srfi/1)
+(require srfi/13)
 (require rackunit)
 
 (struct IRCmsg 
@@ -94,6 +95,13 @@
 
 ;(show-irc-msg (all-to-strings (parse-line ctcp-time))
 
+(define (get-nick msg)
+  "Gets the nickname from the prefix of the message"
+  (let ([exclamation (string-index (IRCmsg-prefix msg) #\!)])
+    (if exclamation
+        (substring (IRCmsg-prefix msg) 0 exclamation)
+        #f)))
+
 (define (not-empty? ircmsgpart)
   (and (not (null? ircmsgpart))
        (not (string=? ircmsgpart ""))))
@@ -129,8 +137,8 @@
   (define (get-tail ircmsg)
     (string->bytes/utf-8 
      (if (not-empty? (IRCmsg-tail ircmsg))
-         (string-append ":" (IRCmsg-tail ircmsg) "\n")
-         "\n")))
+         (IRCmsg-tail ircmsg)
+         "")))
   (let* [(cmd (IRCmsg-command ircmsg))
          (is-ctcp-req (string=? cmd "CTCP"))
          (is-ctcp-rep (string=? cmd "CTCPREPLY"))
@@ -143,8 +151,8 @@
                          [(not is-ctcp) (string->bytes/utf-8 (string-append cmd " "))])
                    (get-params ircmsg)
                    (if is-ctcp
-                       (bytes-append #"\1" (get-tail ircmsg) #"\1") ;;THIS IS WRONG! FIX IT!
-                       (get-tail ircmsg)))))
+                       (bytes-append #":" #"\1" (get-tail ircmsg) #"\1\n")
+                       (bytes-append #":" (get-tail ircmsg) #"\n")))))
 
 
 (define parser-tests

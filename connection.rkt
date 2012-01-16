@@ -3,6 +3,8 @@
 (require "parser.rkt")
 (require "handler.rkt")
 
+(provide reply login connect-to-freenode)
+
 (define irc-recv (make-async-channel))
 (define irc-send (make-async-channel))
 
@@ -46,22 +48,5 @@
     (reply (IRCmsg "" "USER" (string-append nick " " nick " " nick) nick))
     (set! loggedin #t)))
 
-(add-handler "PING" (lambda (msg) 
-                      (reply (IRCmsg "" "PONG" "" (IRCmsg-tail msg)))))
-(add-handler "NOTICE" (lambda (msg)
-                        (when (string=? (IRCmsg-params msg) "*")
-                          (displayln "loggin in")
-                          (login "yflbot"))))
-
-;; 376 = the 'end of MOTD' command.
-(add-handler "376" (lambda (msg)
-                     (reply (IRCmsg "" "JOIN" "#yfl" ""))))
-
-(add-handler "CTCP" 
-             (lambda (msg)
-               (when (string=? (IRCmsg-tail msg) "VERSION")
-                 (reply (IRCmsg "" "CTCP" "#yfl" "ACTION was version'd"))
-                 (displayln "version request received!"))))
-
-(connect-to-irc "irc.freenode.net" 6667 irc-recv irc-send)
-
+(define (connect-to-freenode)
+  (connect-to-irc "irc.freenode.net" 6667 irc-recv irc-send))
