@@ -1,4 +1,4 @@
 -record(ircmsg, {prefix = undefined,
-				 command = "",
-				 arguments = [],
-				 tail=undefined}).
+                 command = "",
+                 arguments = [],
+                 tail=undefined}).

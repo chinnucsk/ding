@@ -17,12 +17,12 @@
 
 connect(Mod, Host, Port, UserName) ->
     {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, 0}, {active, false}]),
-	{ok, _} = gen_tcp:recv(Sock, 0),
-	inet:setopts(Sock, [{active, true}]),
-	gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
-	gen_tcp:send(Sock, "\r\n"),
-	gen_tcp:send(Sock, "NICK "++UserName),
-	gen_tcp:send(Sock, "\r\n"),
+    {ok, _} = gen_tcp:recv(Sock, 0),
+    inet:setopts(Sock, [{active, true}]),
+    gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
+    gen_tcp:send(Sock, "\r\n"),
+    gen_tcp:send(Sock, "NICK "++UserName),
+    gen_tcp:send(Sock, "\r\n"),
     loop(Mod, Sock).
 
 loop(Mod, Sock) ->
@@ -30,21 +30,21 @@ loop(Mod, Sock) ->
         {tcp, _S, Data} ->
             Lines = lines(Data),
 %%            Msgs = lists:map(fun parse_line/1, Lines),
-			Msgs = lists:map(fun(X) ->
-									 R = (catch parse_line(X)),
-									 case R of
-										 {'EXIT',_} -> #ircmsg{command = <<"NOOP">>};
-										 _ -> R
-									 end
-							 end, Lines),
-									 
+            Msgs = lists:map(fun(X) ->
+                                     R = (catch parse_line(X)),
+                                     case R of
+                                         {'EXIT',_} -> #ircmsg{command = <<"NOOP">>};
+                                         _ -> R
+                                     end
+                             end, Lines),
+                                     
             io:format("~p~n", [Msgs]),
             Responses = lists:map(fun Mod:handle_msg/1, Msgs),
             lists:foreach(fun(R) ->
                                   case R of
                                       ok -> ok;
-									  [_|_] -> 
-										  lists:foreach(fun(X) -> send_message(Sock, X) end, R);
+                                      [_|_] -> 
+                                          lists:foreach(fun(X) -> send_message(Sock, X) end, R);
                                       _ -> send_message(Sock, R)
                                   end
                           end,
@@ -54,14 +54,14 @@ loop(Mod, Sock) ->
             Mod:handle_disconnect();
         {send, #ircmsg{} = Msg} ->
             send_message(Sock, Msg),
-			loop(Mod, Sock);
-		{send_raw, Line} ->
-			gen_tcp:send(Sock, Line),
-			gen_tcp:send(Sock, "\r\n"),
-			loop(Mod, Sock);
-		{stop, QuitMsg} ->
-			send_message(Sock, #ircmsg{command="QUIT", tail=QuitMsg}),
-			gen_tcp:close(Sock);
+            loop(Mod, Sock);
+        {send_raw, Line} ->
+            gen_tcp:send(Sock, Line),
+            gen_tcp:send(Sock, "\r\n"),
+            loop(Mod, Sock);
+        {stop, QuitMsg} ->
+            send_message(Sock, #ircmsg{command="QUIT", tail=QuitMsg}),
+            gen_tcp:close(Sock);
         A ->
             io:format("Unknown: ~p~n", [A]),
             loop(Mod, Sock)
@@ -74,7 +74,7 @@ lines(Packet) ->
 starts_with_colon(Bin) ->
     case Bin of
         [] -> false;
-		<<>> -> false;
+        <<>> -> false;
         _ -> binary:first(Bin) == 58
     end.
 

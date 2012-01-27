@@ -16,7 +16,7 @@
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-		 terminate/2, code_change/3]).
+         terminate/2, code_change/3]).
 
 -export([send_msg/2, send_raw/2]).
 
@@ -38,7 +38,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(Module, Host, Port, UserName) ->
-	gen_server:start_link({local, ?SERVER}, ?MODULE, [Module, Host, Port, UserName], []).
+    gen_server:start_link({local, ?SERVER}, ?MODULE, [Module, Host, Port, UserName], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -56,14 +56,14 @@ start_link(Module, Host, Port, UserName) ->
 %% @end
 %%--------------------------------------------------------------------
 init([Module, Host, Port, UserName]) ->
-	{ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, 0}, {active, false}]),
-	{ok, _} = gen_tcp:recv(Sock, 0),
-	inet:setopts(Sock, [{active, true}]),
-	gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
-	gen_tcp:send(Sock, "\r\n"),
-	gen_tcp:send(Sock, "NICK "++UserName),
-	gen_tcp:send(Sock, "\r\n"),
-	{ok, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module}}.
+    {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, 0}, {active, false}]),
+    {ok, _} = gen_tcp:recv(Sock, 0),
+    inet:setopts(Sock, [{active, true}]),
+    gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
+    gen_tcp:send(Sock, "\r\n"),
+    gen_tcp:send(Sock, "NICK "++UserName),
+    gen_tcp:send(Sock, "\r\n"),
+    {ok, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -80,8 +80,8 @@ init([Module, Host, Port, UserName]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call(_Request, _From, State) ->
-	Reply = ok,
-	{reply, Reply, State}.
+    Reply = ok,
+    {reply, Reply, State}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -94,21 +94,21 @@ handle_call(_Request, _From, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast({send_raw, Line}, #state{socket=Sock}=State) ->
-	send_rawmsg(Sock, Line),
-	{noreply, State};
+    send_rawmsg(Sock, Line),
+    {noreply, State};
 handle_cast({send_msg, #ircmsg{}=Msg}, #state{socket=Sock}=State) ->
-	send_ircmsg(Sock, Msg),
-	{noreply, State};
+    send_ircmsg(Sock, Msg),
+    {noreply, State};
 handle_cast(stop, State) ->
-	{stop, normal, State};
+    {stop, normal, State};
 handle_cast(_Msg, State) ->
-	{noreply, State}.
+    {noreply, State}.
 
 %% wrappers
 send_msg(Pid, #ircmsg{}=Msg) ->
-	gen_server:cast(Pid, {send_msg, Msg}).
+    gen_server:cast(Pid, {send_msg, Msg}).
 send_raw(Pid, Line) ->
-	gen_server:cast(Pid, {send_raw, Line}).
+    gen_server:cast(Pid, {send_raw, Line}).
 
 %%--------------------------------------------------------------------
 %% @private
@@ -121,31 +121,31 @@ send_raw(Pid, Line) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_info({tcp, _S, Data}, #state{socket=Sock,callbackmodule=Mod}=State) ->
-	Lines = lines(Data),
-	Msgs = lists:map(fun(X) ->
-							 R = (catch parse_line(X)),
-							 case R of
-								 {'EXIT',_} -> #ircmsg{command = <<"NOOP">>};
-								 _ -> R
-							 end
-					 end, Lines),
-	io:format("~p~n", [Msgs]),
-	Responses = lists:map(fun Mod:handle_msg/1, Msgs),
-	lists:foreach(fun(R) ->
-						  case R of
-							  ok -> ok;
-							  [_|_] -> 
-								  lists:foreach(fun(X) -> send_ircmsg(Sock, X) end, R);
-							  _ -> send_ircmsg(Sock, R)
-						  end
-				  end,
-				  Responses),
-	{noreply, State};
+    Lines = lines(Data),
+    Msgs = lists:map(fun(X) ->
+                             R = (catch parse_line(X)),
+                             case R of
+                                 {'EXIT',_} -> #ircmsg{command = <<"NOOP">>};
+                                 _ -> R
+                             end
+                     end, Lines),
+    io:format("~p~n", [Msgs]),
+    Responses = lists:map(fun Mod:handle_msg/1, Msgs),
+    lists:foreach(fun(R) ->
+                          case R of
+                              ok -> ok;
+                              [_|_] -> 
+                                  lists:foreach(fun(X) -> send_ircmsg(Sock, X) end, R);
+                              _ -> send_ircmsg(Sock, R)
+                          end
+                  end,
+                  Responses),
+    {noreply, State};
 handle_info({tcp_closed, _Port}, State) ->
-	{stop, disconnected, State};
+    {stop, disconnected, State};
 handle_info(Info, State) ->
-	io:format("UNKNOWN: ~p~n",[Info]),
-	{noreply, State}.
+    io:format("UNKNOWN: ~p~n",[Info]),
+    {noreply, State}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -159,7 +159,7 @@ handle_info(Info, State) ->
 %% @end
 %%--------------------------------------------------------------------
 terminate(_Reason, _State) ->
-	ok.
+    ok.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -170,7 +170,7 @@ terminate(_Reason, _State) ->
 %% @end
 %%--------------------------------------------------------------------
 code_change(_OldVsn, State, _Extra) ->
-	{ok, State}.
+    {ok, State}.
 
 %%%===================================================================
 %%% Internal functions
@@ -183,7 +183,7 @@ lines(Packet) ->
 starts_with_colon(Bin) ->
     case Bin of
         [] -> false;
-		<<>> -> false;
+        <<>> -> false;
         _ -> binary:first(Bin) == 58
     end.
 
@@ -263,8 +263,8 @@ send_ircmsg(Sock, #ircmsg{prefix=P,command=C, arguments=A, tail=T}) ->
     gen_tcp:send(Sock,"\r\n").
 
 send_rawmsg(Sock, Line) ->
-	gen_tcp:send(Sock, Line),
-	gen_tcp:send(Sock, "\r\n").
+    gen_tcp:send(Sock, Line),
+    gen_tcp:send(Sock, "\r\n").
 
 test_it() ->
     io:format("~p~n", [parse_line(<<":some.prefix.of.the.server PRIVMSG #testchannel :this is the text">>)]),
