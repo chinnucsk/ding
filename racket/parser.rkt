@@ -148,11 +148,11 @@
                    (cond [is-ctcp-req (string->bytes/utf-8 "PRIVMSG ")]
                          [is-ctcp-rep (string->bytes/utf-8 "NOTICE ")]
                          [is-action (string->bytes/utf-8 "ACTION ")]
-                         [(not is-ctcp) (string->bytes/utf-8 (string-append cmd " "))])
+                         [(not is-ctcp) (string->bytes/utf-8 " ")])
                    (get-params ircmsg)
                    (if is-ctcp
-                       (bytes-append #":" #"\1" (get-tail ircmsg) #"\1\n")
-                       (bytes-append #":" (get-tail ircmsg) #"\n")))))
+                       (bytes-append #" :" #"\1" (get-tail ircmsg) #"\1\n")
+                       (bytes-append #" :" (get-tail ircmsg) #"\n")))))
 
 
 (define parser-tests

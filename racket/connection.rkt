@@ -3,7 +3,7 @@
 (require "parser.rkt")
 (require "handler.rkt")
 
-(provide reply login connect-to-freenode)
+(provide reply login connect-to-freenode connect-to-test)
 
 (define irc-recv (make-async-channel))
 (define irc-send (make-async-channel))
@@ -11,13 +11,15 @@
 (define loggedin #f)
 
 (define (connect-to-irc host port rcv snd)
-  (displayln "In connect-to-irc")
+  (displayln "Connecting")
   (let-values ([(in out) (tcp-connect host port)])
     (file-stream-buffer-mode out 'line)
     (thread (lambda () (irc-router out irc-recv irc-send)))
     (displayln "starting receive loop")
-    (for ([line (in-bytes-lines in)])
-      (async-channel-put rcv line))))
+    (login "yflbot")
+    (with-handlers ([exn:fail? (lambda (exn) (connect-to-irc host port rcv snd))])
+      (for ([line (in-bytes-lines in)])
+        (async-channel-put rcv line)))))
 
 (define (irc-router out-port rcv snd)
   (let ([ln (async-channel-try-get rcv)]
@@ -44,9 +46,13 @@
 
 (define (login nick)
   (when (not loggedin)
+    (displayln "Logging in")
     (reply (IRCmsg "" "NICK" nick ""))
-    (reply (IRCmsg "" "USER" (string-append nick " " nick " " nick) nick))
+    (reply (IRCmsg "" "USER" (string-append nick " " nick " " nick) nick))    
     (set! loggedin #t)))
 
 (define (connect-to-freenode)
   (connect-to-irc "irc.freenode.net" 6667 irc-recv irc-send))
+
+(define (connect-to-test)
+  (connect-to-irc "kjoe.mine.nu" 6877 irc-recv irc-send))

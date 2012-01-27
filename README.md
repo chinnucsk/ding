@@ -11,3 +11,7 @@ Goal
 
 This is meant to be a learning experience. Building something I enjoy in as much languages as I can.
 Hopefully this can be useful for other people too.
+
+Notes
+-----
+* You need Erlang R15 for the Erlang version to work.
