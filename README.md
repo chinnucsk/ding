@@ -15,3 +15,4 @@ Hopefully this can be useful for other people too.
 Notes
 -----
 * You need Erlang R15 for the Erlang version to work.
+* Don't worry, I'll make it fully OTP soon.
