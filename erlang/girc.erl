@@ -63,7 +63,7 @@ start_link(Module, Host, Port, UserName) ->
 %% @end
 %%--------------------------------------------------------------------
 init([Module, Host, Port, UserName]) ->
-	{ok, #state{host=Host, port=Port, username=UserName, callbackmodule=Module}, 0}.
+    {ok, #state{host=Host, port=Port, username=UserName, callbackmodule=Module}, 0}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -126,14 +126,14 @@ handle_info(timeout, #state{host=Host, port=Port, username=UserName, callbackmod
     {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module}};
 handle_info({tcp, _S, Data}, #state{socket=Sock, callbackmodule=Mod}=State) ->
     Lines = lines(Data),
-	Msgs = [ parse_line(X) || X <- Lines],
-	Responses = lists:flatten([ Mod:handle_msg(Msg) || Msg <- Msgs ]),
-	[ send_ircmsg(Sock, R) || R <- Responses ],
+    Msgs = [ parse_line(X) || X <- Lines],
+    Responses = lists:flatten([ Mod:handle_msg(Msg) || Msg <- Msgs ]),
+    [ send_ircmsg(Sock, R) || R <- Responses ],
     {noreply, State};
 handle_info({tcp_closed, _Port}, State) ->
-	io:format("DISCONNECTED!!!!"),
-	%% we really should do something here to reconnect?
-	%% or let the supervisor do that later?
+    io:format("DISCONNECTED!!!!"),
+    %% we really should do something here to reconnect?
+    %% or let the supervisor do that later?
     {stop, disconnected, State};
 handle_info(Info, State) ->
     io:format("UNKNOWN: ~p~n", [Info]),
@@ -169,27 +169,27 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 lines(Packet) ->
-	binary:split(Packet, <<"\r\n">>, [global, trim]).
+    binary:split(Packet, <<"\r\n">>, [global, trim]).
 
 starts_with_colon([]) ->
-	false;
+    false;
 starts_with_colon(<<>>) ->
-	false;
+    false;
 starts_with_colon(Bin) ->
-	binary:first(Bin) == ?COLON.
+    binary:first(Bin) == ?COLON.
 
 next_word2([]) ->
-	{[], []};
+    {[], []};
 next_word2(Bin) ->
-	case binary:split(Bin, <<" ">>) of
-		[H] -> {H, []};
-		[H|T] -> {H, hd(T)}
-	end.
+    case binary:split(Bin, <<" ">>) of
+        [H] -> {H, []};
+        [H|T] -> {H, hd(T)}
+    end.
 
 get_words_before_colon(<<>>) ->
-	{[], <<>>};
+    {[], <<>>};
 get_words_before_colon(Bin) ->
-	get_another_word(Bin, []).
+    get_another_word(Bin, []).
 
 get_another_word(Bin, Words) ->
     case starts_with_colon(Bin) of
@@ -206,51 +206,51 @@ without_colon(Bin) ->
     hd(tl(binary:split(Bin, <<":">>))).
 
 parse_line(<<>>) ->
-	#ircmsg{};
+    #ircmsg{};
 parse_line(IrcBinLine) ->
-	{Prefix, CommandsAnd} =
-		case starts_with_colon(IrcBinLine) of
-			true ->
-				{P, C} = next_word2(IrcBinLine),
-				{without_colon(P), C};
-			false ->
-				{undefined, IrcBinLine}
-		end,
-	{Command, ArgsAnd} = next_word2(CommandsAnd),
-	{Args, T} = get_words_before_colon(ArgsAnd),
-	Tail = case T of
-			   <<>> -> <<>>;
-			   _ -> without_colon(T)
-		   end,
-	#ircmsg{prefix=Prefix, command=Command, arguments=Args, tail=Tail}.
+    {Prefix, CommandsAnd} =
+        case starts_with_colon(IrcBinLine) of
+            true ->
+                {P, C} = next_word2(IrcBinLine),
+                {without_colon(P), C};
+            false ->
+                {undefined, IrcBinLine}
+        end,
+    {Command, ArgsAnd} = next_word2(CommandsAnd),
+    {Args, T} = get_words_before_colon(ArgsAnd),
+    Tail = case T of
+               <<>> -> <<>>;
+               _ -> without_colon(T)
+           end,
+    #ircmsg{prefix=Prefix, command=Command, arguments=Args, tail=Tail}.
 
 send_ircmsg(_Sock, ok) ->
-	ok;
+    ok;
 send_ircmsg(Sock, #ircmsg{prefix=P, command=C, arguments=A, tail=T}) ->
     Reply = [case P of
-				 undefined -> [];
-				 _ -> [":",P," "]
-			 end,
-			 [C," "],
-			 case A of
-				 [] -> [];
-				 [[]] -> [];
-				 _ -> [string:join(A, " "), " "]
-			 end,
-			 case T of
-				 <<>> -> [];
-				 [] -> [];
-				 undefined -> [];
-				 _ -> [":", T]
-			 end,
-			 "\r\n"],
+                 undefined -> [];
+                 _ -> [":",P," "]
+             end,
+             [C," "],
+             case A of
+                 [] -> [];
+                 [[]] -> [];
+                 _ -> [string:join(A, " "), " "]
+             end,
+             case T of
+                 <<>> -> [];
+                 [] -> [];
+                 undefined -> [];
+                 _ -> [":", T]
+             end,
+             "\r\n"],
     gen_tcp:send(Sock, Reply).
 
 send_rawmsg(Sock, Line) ->
     gen_tcp:send(Sock, [Line, "\r\n"]).
 
 is_CTCP(#ircmsg{tail=T}) ->
-	binary:first(T) == 1 andalso binary:last(T) == 1.
+    binary:first(T) == 1 andalso binary:last(T) == 1.
 
 test_it() ->
     io:format("~p~n", [parse_line(<<":some.prefix.of.the.server PRIVMSG #testchannel :this is the text">>)]),
