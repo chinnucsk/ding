@@ -14,8 +14,7 @@
 
 -define(COLON, 58).
 
-%% Shut up! This is just here until I finish the module. :p
--compile(export_all).
+-export([parse_line/1, parse_packet/1]).
 
 -spec lines(Packet :: binary()) -> [binary()].
 lines(Packet) ->
@@ -61,3 +60,9 @@ parse_line(Line) ->
     {A, T} = get_arguments_and_tail(Rest2),
     [{prefix, P}, {cmd, C}, {args, A}, {tail, T}].
 
+%% @doc
+%% A 'packet' is just a list of lines. But since that's what is usually received on the socket...
+%% @end
+-spec parse_packet(Packet :: binary()) -> [ [tuple()] ].
+parse_packet(Packet) ->
+    [ parse_line(X) || X <- lines(Packet) ].
