@@ -59,7 +59,7 @@ get_arguments_and_tail(AfterCmd) ->
     {Args, iolist_to_binary([ [ <<" ">>, X ] || X <- T ])}.
 
 
--spec parse_line(Line :: binary()) -> [tuple()].
+-spec parse_line(Line :: binary()) -> ircmsg().
 parse_line(Line) ->
     Words = words_in_line(Line),
     {P, Rest1} = get_prefix(Words),
