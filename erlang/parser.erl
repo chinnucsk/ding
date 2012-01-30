@@ -10,7 +10,14 @@
 %%% Created : 29 Jan 2012 by Gert Meulyzer <@G3rtm on Twitter>
 
 -module(parser).
--include("irc.hrl").
+
+-record(ircmsg, {prefix = <<>>,
+                 command = <<>>,
+                 arguments = [],
+                 tail = <<>>}).
+
+-opaque ircmsg() :: #ircmsg{}.
+-export_type([ircmsg/0]).
 
 -define(COLON, 58).
 
@@ -58,7 +65,8 @@ parse_line(Line) ->
     {P, Rest1} = get_prefix(Words),
     {C, Rest2} = next_word(Rest1),
     {A, T} = get_arguments_and_tail(Rest2),
-    [{prefix, P}, {cmd, C}, {args, A}, {tail, T}].
+    #ircmsg{prefix=P, command=C, arguments=A, tail=T}.
+
 
 %% @doc
 %% A 'packet' is just a list of lines. But since that's what is usually received on the socket...
