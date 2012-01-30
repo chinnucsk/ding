@@ -16,3 +16,11 @@ Notes
 -----
 * You need Erlang R15 for the Erlang version to work.
 * Don't worry, I'll make it fully OTP soon.
+
+Suggestions I get on IRC
+------------------------
+<klaar> Gertm: there's also no reason for lists:foreach                                                 
+<klaar> also use gen_server or gen_fsm :)                                                                 
+<klaar> also use eunit :P                                                                             
+<klaar> Gertm: just make sure to do everything in lyse at some point as you go along :)   
+  
