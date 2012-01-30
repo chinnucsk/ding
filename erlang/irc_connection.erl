@@ -9,14 +9,11 @@
 
 -export([connect/4]).
 
--include("irc.hrl").
--opaque ircmsg() :: #ircmsg{}.
--export_type([ircmsg/0]).
 
 -callback handle_msg(Message :: ircmsg()) -> Reply :: ircmsg() | ok.
 
 connect(Mod, Host, Port, UserName) ->
-    {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, 0}, {active, false}]),
+    {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, line}, {active, false}]),
     {ok, _} = gen_tcp:recv(Sock, 0),
     inet:setopts(Sock, [{active, true}]),
     gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
