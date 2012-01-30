@@ -9,7 +9,7 @@
 %%% @end
 %%% Created : 29 Jan 2012 by Gert Meulyzer <@G3rtm on Twitter>
 
--module(parser).
+-module(ircmsg).
 
 -record(ircmsg, {prefix = <<>>,
                  command = <<>>,
@@ -22,6 +22,14 @@
 -define(COLON, 58).
 
 -export([parse_line/1, parse_packet/1]).
+%% accessors
+-export([prefix/1, command/1, arguments/1, tail/1]).
+
+prefix(#ircmsg{prefix=P}) -> P.
+command(#ircmsg{command=C}) -> C.
+arguments(#ircmsg{arguments=A}) -> A.
+tail(#ircmsg{tail=T}) -> T.
+
 
 -spec lines(Packet :: binary()) -> [binary()].
 lines(Packet) ->
