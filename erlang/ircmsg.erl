@@ -10,18 +10,20 @@
 %%% Created : 29 Jan 2012 by Gert Meulyzer <@G3rtm on Twitter>
 
 -module(ircmsg).
-
+-include_lib("eunit/include/eunit.hrl").
 -record(ircmsg, {prefix = <<>>,
                  command = <<>>,
                  arguments = [],
                  tail = <<>>}).
+
+
 
 -opaque ircmsg() :: #ircmsg{}.
 -export_type([ircmsg/0]).
 
 -define(COLON, 58).
 
--export([parse_line/1, parse_packet/1]).
+-export([parse_line/1, parse_packet/1, parse_line_test/0]).
 %% accessors
 -export([prefix/1, command/1, arguments/1, tail/1]).
 
@@ -29,7 +31,6 @@ prefix(#ircmsg{prefix=P}) -> P.
 command(#ircmsg{command=C}) -> C.
 arguments(#ircmsg{arguments=A}) -> A.
 tail(#ircmsg{tail=T}) -> T.
-
 
 -spec lines(Packet :: binary()) -> [binary()].
 lines(Packet) ->
@@ -40,6 +41,20 @@ starts_with_colon(<<>>) ->
     false;
 starts_with_colon(Bin) ->
     binary:first(Bin) == ?COLON.
+
+-spec rest(B :: binary()) -> binary().
+rest(<<>>) ->
+    <<>>;
+rest(B) when is_binary(B) ->
+    {_,B2} = split_binary(B,1),
+    B2.
+
+-spec remove_starting_colon(B :: binary()) -> binary().
+remove_starting_colon(B) ->
+    case starts_with_colon(B) of
+        true -> rest(B);
+        _ -> B
+    end.
 
 -spec words_in_line(Line :: binary()) -> [binary()].
 words_in_line(Line) ->
@@ -55,7 +70,7 @@ next_word([H|T]) ->
 -spec get_prefix(Words :: [binary()]) -> {binary(), [binary()]}.
 get_prefix([H|T]=L) ->
     case starts_with_colon(H) of
-        true -> {H, T};
+        true -> {rest(H), T};
         _ -> {<<>>, L}
     end;
 get_prefix(A) ->
@@ -64,7 +79,7 @@ get_prefix(A) ->
 -spec get_arguments_and_tail(AfterCmd :: [binary()]) -> {binary(), [binary()]}.
 get_arguments_and_tail(AfterCmd) ->
     {Args, T} = lists:splitwith(fun(X) -> not(starts_with_colon(X)) end, AfterCmd),
-    {Args, iolist_to_binary([ [ <<" ">>, X ] || X <- T ])}.
+    {Args, rest(iolist_to_binary([ [ <<" ">>, remove_starting_colon(X) ] || X <- T ]))}.
 
 
 -spec parse_line(Line :: binary()) -> ircmsg().
@@ -82,3 +97,10 @@ parse_line(Line) ->
 -spec parse_packet(Packet :: binary()) -> [ [tuple()] ].
 parse_packet(Packet) ->
     [ parse_line(X) || X <- lines(Packet) ].
+
+
+parse_line_test() ->
+    ?assertEqual(#ircmsg{prefix = <<"prefix">>, command = <<"command">>, arguments=[<<"arg1">>, <<"arg2">>], tail = <<"tail of the line">>},
+                 parse_line(<<":prefix command arg1 arg2 :tail of the line">>)),
+    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"command">>, arguments=[], tail = <<"tail of the line">>},
+                 parse_line(<<"command :tail of the line">>)).
