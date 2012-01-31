@@ -60,6 +60,7 @@ remove_starting_colon(B) ->
 words_in_line(Line) ->
     binary:split(Line, <<" ">>, [global, trim]).
 
+-spec next_word(list()) -> tuple().
 next_word([]) ->
     {the_end, []};
 next_word([H]) ->
@@ -90,7 +91,6 @@ parse_line(Line) ->
     {A, T} = get_arguments_and_tail(Rest2),
     #ircmsg{prefix=P, command=C, arguments=A, tail=T}.
 
-
 %% @doc
 %% A 'packet' is just a list of lines. But since that's what is usually received on the socket...
 %% @end
@@ -98,9 +98,10 @@ parse_line(Line) ->
 parse_packet(Packet) ->
     [ parse_line(X) || X <- lines(Packet) ].
 
-
 parse_line_test() ->
     ?assertEqual(#ircmsg{prefix = <<"prefix">>, command = <<"command">>, arguments=[<<"arg1">>, <<"arg2">>], tail = <<"tail of the line">>},
                  parse_line(<<":prefix command arg1 arg2 :tail of the line">>)),
     ?assertEqual(#ircmsg{prefix = <<>>, command = <<"command">>, arguments=[], tail = <<"tail of the line">>},
-                 parse_line(<<"command :tail of the line">>)).
+                 parse_line(<<"command :tail of the line">>)),
+    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"NICK">>, arguments=[ <<"mynick">> ], tail = <<>>},
+                 parse_line(<<"NICK mynick">>)).
