@@ -143,8 +143,15 @@ parse_line_test() ->
 
 %%% ircmsg to server %%%
 
+
+
 -spec to_line(Msg :: ircmsg()) -> binary().
 to_line(#ircmsg{prefix=P, command=C, arguments=A, tail=T}=_Msg) ->
+    Prefix =
+        case P of
+            <<>> -> <<>>;
+            _ -> iolist_to_binary([<<":">>, P, <<" ">>])
+        end,
     {Cmd, T2} = 
         case C of
             <<"CTCP">> -> {<<"PRIVMSG">>, [<<1>>, T, <<1>>]};
@@ -156,11 +163,16 @@ to_line(#ircmsg{prefix=P, command=C, arguments=A, tail=T}=_Msg) ->
             <<>> -> <<>>;
             _ -> iolist_to_binary([<<" :">>, T2])
         end, 
-    iolist_to_binary([<<":">>, P, <<" ">>, Cmd, [ [<<" ">>, X] || X <- A ], Tail]).
+    iolist_to_binary([Prefix, Cmd, [ [<<" ">>, X] || X <- A ], Tail]).
 
 to_line_test() ->
     ?assertEqual(<<":prefix command arg1 arg2 :tail of the line">>, 
                  to_line(#ircmsg{prefix = <<"prefix">>, command = <<"command">>, arguments = [<<"arg1">>, <<"arg2">>], tail = <<"tail of the line">>})), 
     ?assertEqual(<<":prefix command">>, 
-                 to_line(#ircmsg{prefix = <<"prefix">>, command = <<"command">>})).
+                 to_line(#ircmsg{prefix = <<"prefix">>, command = <<"command">>})),
+    ?assertEqual(<<"command arg1 arg2">>,
+                 to_line(#ircmsg{command = <<"command">>, arguments = [<<"arg1">>, <<"arg2">>]})),
+    ?assertEqual(<<"command :this is the tail">>,
+                 to_line(#ircmsg{command = <<"command">>, tail="this is the tail"})).
+    
                  
