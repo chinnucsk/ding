@@ -11,9 +11,9 @@
 
 -module(ircmsg).
 -include_lib("eunit/include/eunit.hrl").
--record(ircmsg, {prefix = <<>>,
-                 command = <<>>,
-                 arguments = [],
+-record(ircmsg, {prefix = <<>>, 
+                 command = <<>>, 
+                 arguments = [], 
                  tail = <<>>}).
 
 -opaque ircmsg() :: #ircmsg{}.
@@ -23,7 +23,7 @@
 
 %%& API %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -export([parse_line/1, parse_packet/1]).
-
+-export([to_line/1]).
 %% accessors
 -export([prefix/1, command/1, arguments/1, tail/1]).
 -spec prefix(ircmsg()) -> binary().
@@ -37,7 +37,9 @@ tail(#ircmsg{tail=T}) -> T.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Helper Functions
+%%%%% Helper Functions
+
+%%% server to ircmsg %%%
 
 -spec lines(Packet :: binary()) -> [binary()].
 lines(Packet) ->
@@ -53,7 +55,7 @@ starts_with_colon(Bin) ->
 rest(<<>>) ->
     <<>>;
 rest(B) when is_binary(B) ->
-    {_,B2} = split_binary(B,1),
+    {_, B2} = split_binary(B, 1), 
     B2.
 
 -spec remove_starting_colon(B :: binary()) -> binary().
@@ -82,20 +84,20 @@ get_prefix([H|T]=L) ->
         _ -> {<<>>, L}
     end;
 get_prefix(A) ->
-    {<<>>,A}.
+    {<<>>, A}.
 
 -spec get_arguments_and_tail(AfterCmd :: [binary()]) -> {binary(), [binary()]}.
 get_arguments_and_tail(AfterCmd) ->
-    {Args, T} = lists:splitwith(fun(X) -> not(starts_with_colon(X)) end, AfterCmd),
+    {Args, T} = lists:splitwith(fun(X) -> not(starts_with_colon(X)) end, AfterCmd), 
     {Args, rest(iolist_to_binary([ [ <<" ">>, remove_starting_colon(X) ] || X <- T ]))}.
 
 -spec parse_line(Line :: binary()) -> ircmsg().
 parse_line(Line) ->
-    Words = words_in_line(Line),
-    {P, Rest1} = get_prefix(Words),
-    {C, Rest2} = next_word(Rest1),
-    {A, T} = get_arguments_and_tail(Rest2),
-    Msg = #ircmsg{prefix=P, command=C, arguments=A, tail=T},
+    Words = words_in_line(Line), 
+    {P, Rest1} = get_prefix(Words), 
+    {C, Rest2} = next_word(Rest1), 
+    {A, T} = get_arguments_and_tail(Rest2), 
+    Msg = #ircmsg{prefix=P, command=C, arguments=A, tail=T}, 
     case is_ctcp(Msg) of
         true -> convert_ctcp(Msg);
         _ -> Msg
@@ -109,9 +111,9 @@ is_ctcp(#ircmsg{tail=T}) ->
 
 -spec strip_tailwraps(T :: binary()) -> binary().
 strip_tailwraps(<<>>) -> <<>>;
-strip_tailwraps(B) -> 
-    TailSize = byte_size(B),
-    binary_part(B,1,TailSize-2).
+strip_tailwraps(B) ->
+    TailSize = byte_size(B), 
+    binary_part(B, 1, TailSize-2).
 
 %% extremely basic CTCP parsing
 -spec convert_ctcp(#ircmsg{}) -> #ircmsg{}.
@@ -128,13 +130,37 @@ parse_packet(Packet) ->
     [ parse_line(X) || X <- lines(Packet) ].
 
 parse_line_test() ->
-    ?assertEqual(#ircmsg{prefix = <<"prefix">>, command = <<"command">>, arguments=[<<"arg1">>, <<"arg2">>], tail = <<"tail of the line">>},
-                 parse_line(<<":prefix command arg1 arg2 :tail of the line">>)),
-    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"command">>, arguments=[], tail = <<"tail of the line">>},
-                 parse_line(<<"command :tail of the line">>)),
-    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"NICK">>, arguments=[ <<"mynick">> ], tail = <<>>},
-                 parse_line(<<"NICK mynick">>)),
-    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"CTCP">>, arguments=[ <<"#channel">> ],
-                         tail = <<"ACTION does a barrel roll.">>},
-                 parse_line(iolist_to_binary([<<>>,<<"PRIVMSG ">>,<<"#channel ">>,<<":">>,
-                                              <<1>>,<<"ACTION does a barrel roll.">>,<<1>>]))).
+    ?assertEqual(#ircmsg{prefix = <<"prefix">>, command = <<"command">>, arguments=[<<"arg1">>, <<"arg2">>], tail = <<"tail of the line">>}, 
+                 parse_line(<<":prefix command arg1 arg2 :tail of the line">>)), 
+    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"command">>, arguments=[], tail = <<"tail of the line">>}, 
+                 parse_line(<<"command :tail of the line">>)), 
+    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"NICK">>, arguments=[ <<"mynick">> ], tail = <<>>}, 
+                 parse_line(<<"NICK mynick">>)), 
+    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"CTCP">>, arguments=[ <<"#channel">> ], 
+                         tail = <<"ACTION does a barrel roll.">>}, 
+                 parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"#channel ">>, <<":">>, 
+                                              <<1>>, <<"ACTION does a barrel roll.">>, <<1>>]))).
+
+%%% ircmsg to server %%%
+
+-spec to_line(Msg :: ircmsg()) -> binary().
+to_line(#ircmsg{prefix=P, command=C, arguments=A, tail=T}=_Msg) ->
+    {Cmd, T2} = 
+        case C of
+            <<"CTCP">> -> {<<"PRIVMSG">>, [<<1>>, T, <<1>>]};
+            <<"CTCP_REPLY">> -> {<<"NOTICE">>, [<<1>>, T, <<1>>]};
+            _ -> {C, T}
+        end, 
+    Tail = 
+        case T2 of
+            <<>> -> <<>>;
+            _ -> iolist_to_binary([<<" :">>, T2])
+        end, 
+    iolist_to_binary([<<":">>, P, <<" ">>, Cmd, [ [<<" ">>, X] || X <- A ], Tail]).
+
+to_line_test() ->
+    ?assertEqual(<<":prefix command arg1 arg2 :tail of the line">>, 
+                 to_line(#ircmsg{prefix = <<"prefix">>, command = <<"command">>, arguments = [<<"arg1">>, <<"arg2">>], tail = <<"tail of the line">>})), 
+    ?assertEqual(<<":prefix command">>, 
+                 to_line(#ircmsg{prefix = <<"prefix">>, command = <<"command">>})).
+                 
