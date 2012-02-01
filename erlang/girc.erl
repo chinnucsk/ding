@@ -168,62 +168,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
-lines(Packet) ->
-    binary:split(Packet, <<"\r\n">>, [global, trim]).
-
-starts_with_colon([]) ->
-    false;
-starts_with_colon(<<>>) ->
-    false;
-starts_with_colon(Bin) ->
-    binary:first(Bin) == ?COLON.
-
-next_word2([]) ->
-    {[], []};
-next_word2(Bin) ->
-    case binary:split(Bin, <<" ">>) of
-        [H] -> {H, []};
-        [H|T] -> {H, hd(T)}
-    end.
-
-get_words_before_colon(<<>>) ->
-    {[], <<>>};
-get_words_before_colon(Bin) ->
-    get_another_word(Bin, []).
-
-get_another_word(Bin, Words) ->
-    case starts_with_colon(Bin) of
-        true -> {Words, Bin};
-        false ->
-            {Word, Rest} = next_word2(Bin),
-            case Rest of
-                [] -> {[Word|Words], <<>>};
-                _ -> get_another_word(Rest, [Word|Words])
-            end
-    end.
-
-without_colon(Bin) ->
-    hd(tl(binary:split(Bin, <<":">>))).
-
-parse_line(<<>>) ->
-    #ircmsg{};
-parse_line(IrcBinLine) ->
-    {Prefix, CommandsAnd} =
-        case starts_with_colon(IrcBinLine) of
-            true ->
-                {P, C} = next_word2(IrcBinLine),
-                {without_colon(P), C};
-            false ->
-                {undefined, IrcBinLine}
-        end,
-    {Command, ArgsAnd} = next_word2(CommandsAnd),
-    {Args, T} = get_words_before_colon(ArgsAnd),
-    Tail = case T of
-               <<>> -> <<>>;
-               _ -> without_colon(T)
-           end,
-    #ircmsg{prefix=Prefix, command=Command, arguments=Args, tail=Tail}.
-
 send_ircmsg(_Sock, ok) ->
     ok;
 send_ircmsg(Sock, #ircmsg{prefix=P, command=C, arguments=A, tail=T}) ->
