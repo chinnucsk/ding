@@ -16,21 +16,28 @@
                  arguments = [],
                  tail = <<>>}).
 
-
-
 -opaque ircmsg() :: #ircmsg{}.
 -export_type([ircmsg/0]).
 
 -define(COLON, 58).
 
--export([parse_line/1, parse_packet/1, parse_line_test/0]).
+%%& API %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+-export([parse_line/1, parse_packet/1]).
+
 %% accessors
 -export([prefix/1, command/1, arguments/1, tail/1]).
-
+-spec prefix(ircmsg()) -> binary().
 prefix(#ircmsg{prefix=P}) -> P.
+-spec command(ircmsg()) -> binary().
 command(#ircmsg{command=C}) -> C.
+-spec arguments(ircmsg()) -> binary().
 arguments(#ircmsg{arguments=A}) -> A.
+-spec tail(ircmsg()) -> binary().
 tail(#ircmsg{tail=T}) -> T.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Helper Functions
 
 -spec lines(Packet :: binary()) -> [binary()].
 lines(Packet) ->
@@ -82,14 +89,36 @@ get_arguments_and_tail(AfterCmd) ->
     {Args, T} = lists:splitwith(fun(X) -> not(starts_with_colon(X)) end, AfterCmd),
     {Args, rest(iolist_to_binary([ [ <<" ">>, remove_starting_colon(X) ] || X <- T ]))}.
 
-
 -spec parse_line(Line :: binary()) -> ircmsg().
 parse_line(Line) ->
     Words = words_in_line(Line),
     {P, Rest1} = get_prefix(Words),
     {C, Rest2} = next_word(Rest1),
     {A, T} = get_arguments_and_tail(Rest2),
-    #ircmsg{prefix=P, command=C, arguments=A, tail=T}.
+    Msg = #ircmsg{prefix=P, command=C, arguments=A, tail=T},
+    case is_ctcp(Msg) of
+        true -> convert_ctcp(Msg);
+        _ -> Msg
+    end.
+
+-spec is_ctcp(ircmsg()) -> boolean().
+is_ctcp(#ircmsg{tail = <<>>}) ->
+    false;
+is_ctcp(#ircmsg{tail=T}) ->
+    binary:first(T) == 1 andalso binary:last(T) == 1.
+
+-spec strip_tailwraps(T :: binary()) -> binary().
+strip_tailwraps(<<>>) -> <<>>;
+strip_tailwraps(B) -> 
+    TailSize = byte_size(B),
+    binary_part(B,1,TailSize-2).
+
+%% extremely basic CTCP parsing
+-spec convert_ctcp(#ircmsg{}) -> #ircmsg{}.
+convert_ctcp(#ircmsg{command = <<"NOTICE">>, tail=T}=Msg) ->
+    Msg#ircmsg{command = <<"CTCP_REPLY">>, tail = strip_tailwraps(T)};
+convert_ctcp(#ircmsg{command = <<"PRIVMSG">>, tail=T}=Msg) ->
+    Msg#ircmsg{command = <<"CTCP">>, tail = strip_tailwraps(T)}.
 
 %% @doc
 %% A 'packet' is just a list of lines. But since that's what is usually received on the socket...
@@ -104,4 +133,8 @@ parse_line_test() ->
     ?assertEqual(#ircmsg{prefix = <<>>, command = <<"command">>, arguments=[], tail = <<"tail of the line">>},
                  parse_line(<<"command :tail of the line">>)),
     ?assertEqual(#ircmsg{prefix = <<>>, command = <<"NICK">>, arguments=[ <<"mynick">> ], tail = <<>>},
-                 parse_line(<<"NICK mynick">>)).
+                 parse_line(<<"NICK mynick">>)),
+    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"CTCP">>, arguments=[ <<"#channel">> ],
+                         tail = <<"ACTION does a barrel roll.">>},
+                 parse_line(iolist_to_binary([<<>>,<<"PRIVMSG ">>,<<"#channel ">>,<<":">>,
+                                              <<1>>,<<"ACTION does a barrel roll.">>,<<1>>]))).
