@@ -8,7 +8,6 @@
 -module(bot).
 
 -behaviour(girc).
--include("irc.hrl").
 
 -export([start/0, handle_msg/1, check_for_url/1]).
 
@@ -16,41 +15,17 @@ start() ->
     inets:start(),
     girc:start_link(?MODULE, "irc.freenode.net", 6667, "yflbot").
 
-handle_msg(#ircmsg{command = <<"PRIVMSG">>}=Msg) ->
-    handle_privmsg(Msg);
-handle_msg(#ircmsg{command = <<"PING">>, tail=T}) ->
-    #ircmsg{command="PONG", tail=T};
-handle_msg(#ircmsg{command = <<"002">>}) ->
-    #ircmsg{command="JOIN", arguments=["#yfl"]};
-handle_msg(#ircmsg{prefix=_P, command=_C, arguments=_A, tail=_T}=_Msg) ->
-    ok.
-
--spec handle_privmsg(Msg :: #ircmsg{}) -> #ircmsg{} | ok.
-handle_privmsg(#ircmsg{prefix=_P, command=_C, arguments=A, tail=T}=Msg) ->
-    io:format("~p~n",[Msg]),
-    case A of
-        [<<"#euronarp">>] ->
-            parse_gt_command(T);
-        _ -> ok
+handle_msg(Msg) ->
+    case ircmsg:command(Msg) of
+        <<"PRIVMSG">> -> handle_privmsg(Msg);
+        <<"PING">> -> ircmsg:create(<<>>,<<"PONG">>,[],ircmsg:tail(Msg));
+        <<"002">> -> ircmsg:create(<<>>,<<"JOIN">>,[<<"#yfl">>],<<>>);
+        _ -> none
     end.
 
-parse_gt_command(Line) ->
-    if byte_size(Line) > 2 ->
-            case binary:part(Line, 0, 3) of
-                <<"!GT">> ->
-                    UserName = binary:replace(Line, <<"!GT ">>, <<"">>),
-                    Status = (catch get_xbox_info_for_username(UserName)),
-                    Reply = case Status of
-                                {'EXIT', _} -> "Error!";
-                                _ -> Status
-                            end,
-                    #ircmsg{command="PRIVMSG",
-                            arguments=["#euronarp"],
-                            tail=Reply};
-                _ -> ok
-            end;
-       true -> ok
-    end.
+-spec handle_privmsg(Msg :: ircmsg:ircmsg()) -> ircmsg:ircmsg() | ok.
+handle_privmsg(Msg) ->
+    io:format("~p~n",[Msg]).
 
 get_http_contents(Url) ->
     {ok, {_, _, Contents}} = httpc:request(Url),
