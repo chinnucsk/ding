@@ -24,6 +24,7 @@
 %%& API %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -export([parse_line/1, parse_packet/1]).
 -export([to_line/1]).
+-export([create/4]).
 %% accessors
 -export([prefix/1, command/1, arguments/1, tail/1]).
 -spec prefix(ircmsg()) -> binary().
@@ -38,6 +39,9 @@ tail(#ircmsg{tail=T}) -> T.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%% Helper Functions
+-spec create(Prefix :: binary(), Command :: binary(), Arguments :: [binary()], Tail :: binary()) -> ircmsg().
+create(Prefix, Command, Arguments, Tail) ->
+    #ircmsg{prefix=Prefix, command=Command, arguments=Arguments, tail=Tail}.
 
 %%% server to ircmsg %%%
 
