@@ -9,7 +9,6 @@
 -module(girc).
 
 -behaviour(gen_server).
--include("irc.hrl").
 -define(COLON, 58).
 
 %% API
@@ -19,19 +18,20 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([send_msg/2, send_raw/2, is_CTCP/1]).
+-export([send_msg/2, send_raw/2]).
 
 -define(SERVER, ?MODULE).
 
 -record(state, {socket, host, port=6667, username, callbackmodule}).
 
--callback handle_msg(Message :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
+-callback handle_msg(Message :: ircmsg:ircmsg()) -> Reply :: ircmsg:ircmsg() | ok.
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
-send_msg(Pid, #ircmsg{}=Msg) ->
+%% -spec send_msg(Pid :: pid()) -> Msg :: ircmsg:ircmsg().
+send_msg(Pid, Msg) ->
     gen_server:cast(Pid, {send_msg, Msg}).
 send_raw(Pid, Line) ->
     gen_server:cast(Pid, {send_raw, Line}).
@@ -96,7 +96,7 @@ handle_call(_Request, _From, State) ->
 handle_cast({send_raw, Line}, #state{socket=Sock}=State) ->
     send_rawmsg(Sock, Line),
     {noreply, State};
-handle_cast({send_msg, #ircmsg{}=Msg}, #state{socket=Sock}=State) ->
+handle_cast({send_msg, Msg}, #state{socket=Sock}=State) ->
     send_ircmsg(Sock, Msg),
     {noreply, State};
 handle_cast(stop, State) ->
@@ -115,9 +115,7 @@ handle_cast(_Msg, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_info(timeout, #state{host=Host, port=Port, username=UserName, callbackmodule=Module}) ->
-    {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, 0}, {active, false}]),
-    {ok, _} = gen_tcp:recv(Sock, 0),
-    inet:setopts(Sock, [{active, true}]),
+    {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, line}, {active, true}]),
     %% Do the IRC login
     gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
     gen_tcp:send(Sock, "\r\n"),
@@ -125,10 +123,12 @@ handle_info(timeout, #state{host=Host, port=Port, username=UserName, callbackmod
     gen_tcp:send(Sock, "\r\n"),
     {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module}};
 handle_info({tcp, _S, Data}, #state{socket=Sock, callbackmodule=Mod}=State) ->
-    Lines = lines(Data),
-    Msgs = [ parse_line(X) || X <- Lines],
-    Responses = lists:flatten([ Mod:handle_msg(Msg) || Msg <- Msgs ]),
-    [ send_ircmsg(Sock, R) || R <- Responses ],
+    Msg = ircmsg:parse_line(Data),
+    Response = Mod:handle_msg(Msg),
+    case Response of
+        none -> ok;
+        _ -> send_ircmsg(Sock, Response)
+    end,
     {noreply, State};
 handle_info({tcp_closed, _Port}, State) ->
     io:format("DISCONNECTED!!!!"),
@@ -170,36 +170,10 @@ code_change(_OldVsn, State, _Extra) ->
 
 send_ircmsg(_Sock, ok) ->
     ok;
-send_ircmsg(Sock, #ircmsg{prefix=P, command=C, arguments=A, tail=T}) ->
-    Reply = [case P of
-                 undefined -> [];
-                 _ -> [":",P," "]
-             end,
-             [C," "],
-             case A of
-                 [] -> [];
-                 [[]] -> [];
-                 _ -> [string:join(A, " "), " "]
-             end,
-             case T of
-                 <<>> -> [];
-                 [] -> [];
-                 undefined -> [];
-                 _ -> [":", T]
-             end,
-             "\r\n"],
-    gen_tcp:send(Sock, Reply).
+send_ircmsg(Sock, Msg) ->
+    gen_tcp:send(Sock, iolist_to_binary([ircmsg:to_line(Msg),<<"\r\n">>])).
 
 send_rawmsg(Sock, Line) ->
     gen_tcp:send(Sock, [Line, "\r\n"]).
 
-is_CTCP(#ircmsg{tail=T}) ->
-    binary:first(T) == 1 andalso binary:last(T) == 1.
-
-test_it() ->
-    io:format("~p~n", [parse_line(<<":some.prefix.of.the.server PRIVMSG #testchannel :this is the text">>)]),
-    io:format("~p~n", [parse_line(<<"PING :pingeding">>)]),
-    io:format("~p~n", [parse_line(<<"COMMAND argument">>)]),
-    io:format("~p~n", [parse_line(<<"COMMAND">>)]),
-    io:format("~p~n", [parse_line(<<":pre NOTICE #channel :blaa">>)]).
 
