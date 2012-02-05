@@ -19,7 +19,7 @@ handle_msg(Msg) ->
     case ircmsg:command(Msg) of
         <<"PRIVMSG">> -> handle_privmsg(Msg);
         <<"PING">> -> ircmsg:create(<<>>,<<"PONG">>,[],ircmsg:tail(Msg));
-        <<"002">> -> ircmsg:create(<<>>,<<"JOIN">>,[<<"#yfl">>],<<>>);
+        <<"002">> -> ircmsg:create(<<>>,<<"JOIN">>,[<<"#yfl">>],<<>>); %% this is a little crude, it won't work on all IRC servers.
         _ -> none
     end.
 
