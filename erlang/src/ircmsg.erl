@@ -25,17 +25,36 @@
 -export([parse_line/1, parse_packet/1]).
 -export([to_line/1]).
 -export([create/4]).
+%% helpers
+-export([nick/1, show/1]).
 %% accessors
 -export([prefix/1, command/1, arguments/1, tail/1]).
+
 -spec prefix(ircmsg()) -> binary().
 prefix(#ircmsg{prefix=P}) -> P.
+
 -spec command(ircmsg()) -> binary().
 command(#ircmsg{command=C}) -> C.
+
 -spec arguments(ircmsg()) -> binary().
 arguments(#ircmsg{arguments=A}) -> A.
+
 -spec tail(ircmsg()) -> binary().
 tail(#ircmsg{tail=T}) -> T.
 
+%% helper functions
+-spec nick(ircmsg()) -> binary().
+nick(#ircmsg{prefix = <<>>}) -> 
+    <<>>;
+nick(#ircmsg{prefix=P}) ->
+    hd(binary:split(P,<<"!">>)).
+
+-spec show(ircmsg()) -> ok.
+show(#ircmsg{command = <<"PRIVMSG">>, arguments=A, tail=T}=Msg) ->
+    Channel = binary_to_list(hd(A)),
+    Nick = binary_to_list(nick(Msg)),
+    Content = binary_to_list(T),
+    io:format("~s -> <~s> ~s~n",[Channel, Nick, Content]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%% Helper Functions
@@ -146,8 +165,6 @@ parse_line_test() ->
                                               <<1>>, <<"ACTION does a barrel roll.">>, <<1>>]))).
 
 %%% ircmsg to server %%%
-
-
 
 -spec to_line(Msg :: ircmsg()) -> binary().
 to_line(#ircmsg{prefix=P, command=C, arguments=A, tail=T}=_Msg) ->
