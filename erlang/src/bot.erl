@@ -9,23 +9,34 @@
 
 -behaviour(girc).
 
--export([start/0, handle_msg/1, check_for_url/1]).
+-export([start/0, stop/0, handle_msg/1, check_for_url/1]).
 
 start() ->
     inets:start(),
     girc:start_link(?MODULE, "irc.freenode.net", 6667, "dingbot").
 
+stop() ->
+    girc:terminate("Stopping",none).
+
 handle_msg(Msg) ->
     case ircmsg:command(Msg) of
         <<"PRIVMSG">> -> handle_privmsg(Msg);
         <<"PING">> -> ircmsg:create(<<>>,<<"PONG">>,[],ircmsg:tail(Msg));
+        <<"JOIN">> -> handle_join(Msg);
         <<"002">> -> ircmsg:create(<<>>,<<"JOIN">>,[<<"#erlounge">>],<<>>); %% this is a little crude, it won't work on all IRC servers.
-        _ -> none
+        _ -> io:format("Unknown: ~p~n",[Msg])
     end.
 
 -spec handle_privmsg(Msg :: ircmsg:ircmsg()) -> ircmsg:ircmsg() | ok.
 handle_privmsg(Msg) ->
-    io:format("~p~n",[Msg]).
+    ircmsg:show(Msg).
+
+-spec handle_join(Msg :: ircmsg:ircmsg()) -> ircmsg:ircmsg() | ok.
+handle_join(Msg) ->
+    Channel = hd(ircmsg:arguments(Msg)),
+    Nick = ircmsg:nick(Msg),
+    io:format("JOIN to ~p by ~p~n",[Channel,Nick]),
+    ok.
 
 check_for_url(Line) ->
     Pattern="(http|ftp|https):\\/\\/[\\w\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?",
