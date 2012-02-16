@@ -11,9 +11,11 @@
 
 -export([start/0, stop/0, handle_msg/1, check_for_url/1]).
 
+-export([handle_join/1]).
+
 start() ->
     inets:start(),
-    girc:start_link(?MODULE, "irc.freenode.net", 6667, "dingbot").
+    girc:start_link(?MODULE, "irc.freenode.net", 6667, "dingding").
 
 stop() ->
     girc:terminate("Stopping",none).
@@ -22,7 +24,7 @@ handle_msg(Msg) ->
     case ircmsg:command(Msg) of
         <<"PRIVMSG">> -> handle_privmsg(Msg);
         <<"PING">> -> ircmsg:create(<<>>,<<"PONG">>,[],ircmsg:tail(Msg));
-        <<"JOIN">> -> handle_join(Msg);
+        <<"JOIN">> -> ?MODULE:handle_join(Msg);
         <<"002">> -> ircmsg:create(<<>>,<<"JOIN">>,[<<"#erlounge">>],<<>>); %% this is a little crude, it won't work on all IRC servers.
         _ -> io:format("Unknown: ~p~n",[Msg])
     end.
@@ -46,6 +48,6 @@ check_for_url(Line) ->
         _ -> []
     end.
 
-tinyurl(Url) ->
-    %% http://tinyurl.com/api-create.php?url=http://scripting.com/
-    undefined.
+%% tinyurl(Url) ->
+%%     %% http://tinyurl.com/api-create.php?url=http://scripting.com/
+%%     undefined.

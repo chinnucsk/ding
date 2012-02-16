@@ -36,7 +36,7 @@ prefix(#ircmsg{prefix=P}) -> P.
 -spec command(ircmsg()) -> binary().
 command(#ircmsg{command=C}) -> C.
 
--spec arguments(ircmsg()) -> binary().
+-spec arguments(ircmsg()) -> [binary()].
 arguments(#ircmsg{arguments=A}) -> A.
 
 -spec tail(ircmsg()) -> binary().
@@ -54,7 +54,7 @@ show(#ircmsg{command = <<"PRIVMSG">>, arguments=A, tail=T}=Msg) ->
     Channel = binary_to_list(hd(A)),
     Nick = binary_to_list(nick(Msg)),
     Content = binary_to_list(T),
-    io:format("~s -> <~s> ~s~n",[Channel, Nick, Content]).
+    io:format("~s <~s> ~s",[Channel, Nick, Content]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%% Helper Functions
@@ -81,13 +81,6 @@ rest(B) when is_binary(B) ->
     {_, B2} = split_binary(B, 1), 
     B2.
 
--spec remove_starting_colon(B :: binary()) -> binary().
-remove_starting_colon(B) ->
-    case starts_with_colon(B) of
-        true -> rest(B);
-        _ -> B
-    end.
-
 -spec words_in_line(Line :: binary()) -> [binary()].
 words_in_line(Line) ->
     binary:split(Line, <<" ">>, [global, trim]).
@@ -109,10 +102,10 @@ get_prefix([H|T]=L) ->
 get_prefix(A) ->
     {<<>>, A}.
 
--spec get_arguments_and_tail(AfterCmd :: [binary()]) -> {binary(), [binary()]}.
+-spec get_arguments_and_tail(AfterCmd :: [binary()]) -> {[binary()], binary()}.
 get_arguments_and_tail(AfterCmd) ->
     {Args, T} = lists:splitwith(fun(X) -> not(starts_with_colon(X)) end, AfterCmd), 
-    {Args, rest(iolist_to_binary([ [ <<" ">>, remove_starting_colon(X) ] || X <- T ]))}.
+    {Args, rest(rest(iolist_to_binary([ [ <<" ">>, X ] || X <- T ])))}.
 
 -spec parse_line(Line :: binary()) -> ircmsg().
 parse_line(Line) ->
@@ -139,7 +132,7 @@ strip_tailwraps(B) ->
     binary_part(B, 1, TailSize-2).
 
 %% extremely basic CTCP parsing
--spec convert_ctcp(#ircmsg{}) -> #ircmsg{}.
+-spec convert_ctcp(ircmsg()) -> ircmsg().
 convert_ctcp(#ircmsg{command = <<"NOTICE">>, tail=T}=Msg) ->
     Msg#ircmsg{command = <<"CTCP_REPLY">>, tail = strip_tailwraps(T)};
 convert_ctcp(#ircmsg{command = <<"PRIVMSG">>, tail=T}=Msg) ->
@@ -159,6 +152,16 @@ parse_line_test() ->
                  parse_line(<<"command :tail of the line">>)), 
     ?assertEqual(#ircmsg{prefix = <<>>, command = <<"NICK">>, arguments=[ <<"mynick">> ], tail = <<>>}, 
                  parse_line(<<"NICK mynick">>)), 
+    ?assertEqual(is_ctcp(parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"#channel ">>, <<":">>, 
+                                                      <<1>>, <<"ACTION does a barrel roll.">>, <<1>>]))),
+                 true),
+    ?assertEqual(is_ctcp(parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"nickname ">>, <<":">>, 
+                                                      <<1>>, <<"VERSION">>, <<1>>]))),
+                 true),
+    ?assertEqual(parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"nickname ">>, <<":">>, 
+                                                      <<1>>, <<"VERSION">>, <<1>>])),
+                 #ircmsg{prefix = <<>>, command= <<"CTCP">>, arguments=[<<"nickname">>],
+                        tail= <<"VERSION">>}),
     ?assertEqual(#ircmsg{prefix = <<>>, command = <<"CTCP">>, arguments=[ <<"#channel">> ], 
                          tail = <<"ACTION does a barrel roll.">>}, 
                  parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"#channel ">>, <<":">>, 
