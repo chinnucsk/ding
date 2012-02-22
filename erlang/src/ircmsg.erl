@@ -102,10 +102,15 @@ get_prefix([H|T]=L) ->
 get_prefix(A) ->
     {<<>>, A}.
 
+-spec assemble_tail([binary()]) -> binary().
+assemble_tail(T) ->
+    FirstStep = iolist_to_binary([ [ <<" ">>, X ] || X <- T ]),
+    rest(rest(FirstStep)).
+
 -spec get_arguments_and_tail(AfterCmd :: [binary()]) -> {[binary()], binary()}.
 get_arguments_and_tail(AfterCmd) ->
     {Args, T} = lists:splitwith(fun(X) -> not(starts_with_colon(X)) end, AfterCmd), 
-    {Args, rest(rest(iolist_to_binary([ [ <<" ">>, X ] || X <- T ])))}.
+    {Args, assemble_tail(T)}.
 
 -spec parse_line(Line :: binary()) -> ircmsg().
 parse_line(Line) ->
@@ -152,12 +157,6 @@ parse_line_test() ->
                  parse_line(<<"command :tail of the line">>)), 
     ?assertEqual(#ircmsg{prefix = <<>>, command = <<"NICK">>, arguments=[ <<"mynick">> ], tail = <<>>}, 
                  parse_line(<<"NICK mynick">>)), 
-    ?assertEqual(is_ctcp(parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"#channel ">>, <<":">>, 
-                                                      <<1>>, <<"ACTION does a barrel roll.">>, <<1>>]))),
-                 true),
-    ?assertEqual(is_ctcp(parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"nickname ">>, <<":">>, 
-                                                      <<1>>, <<"VERSION">>, <<1>>]))),
-                 true),
     ?assertEqual(parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"nickname ">>, <<":">>, 
                                                       <<1>>, <<"VERSION">>, <<1>>])),
                  #ircmsg{prefix = <<>>, command= <<"CTCP">>, arguments=[<<"nickname">>],
@@ -165,7 +164,11 @@ parse_line_test() ->
     ?assertEqual(#ircmsg{prefix = <<>>, command = <<"CTCP">>, arguments=[ <<"#channel">> ], 
                          tail = <<"ACTION does a barrel roll.">>}, 
                  parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"#channel ">>, <<":">>, 
-                                              <<1>>, <<"ACTION does a barrel roll.">>, <<1>>]))).
+                                              <<1>>, <<"ACTION does a barrel roll.">>, <<1>>]))),
+    ?assertEqual(#ircmsg{prefix = <<>>, command = <<"CTCP">>, arguments=[ <<"#channel">> ], 
+                         tail = <<"ACTION does a barrel roll. :)">>}, 
+                 parse_line(iolist_to_binary([<<>>, <<"PRIVMSG ">>, <<"#channel ">>, <<":">>, 
+                                              <<1>>, <<"ACTION does a barrel roll. :)">>, <<1>>]))).
 
 %%% ircmsg to server %%%
 
