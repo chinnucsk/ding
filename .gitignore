@@ -1,3 +1,5 @@
 *~
 racket/compiled
 *.beam
+erlang/rebar
+
