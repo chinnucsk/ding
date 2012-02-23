@@ -60,7 +60,7 @@ init([]) ->
     Shutdown = 2000,
     Type = worker,
     
-    MyChild = {'yflbot', {'bot', start, []},
+    MyChild = {dingding, {'bot', start, []},
                permanent, 2000, worker, ['bot']},
     
     {ok, {SupFlags, [MyChild]}}.

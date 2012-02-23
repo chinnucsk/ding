@@ -3,6 +3,6 @@
   {vsn,"0.1"},
   {modules, [ding,ding_sup,girc,bot,ircmsg]},
   {registered, [ding]},
-  {applications, [kernel, stdlib, sasl]},
-  {env, [{kernel}]},
+  {applications, [kernel, stdlib]},
+  {env, []},
   {mod, {ding,[]}}]}.

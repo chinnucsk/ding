@@ -20,14 +20,27 @@ start() ->
 stop() ->
     girc:terminate("Stopping",none).
 
+-spec handle_msg(ircmsg:irmsg()) -> ircmsg:msg() | ok.
 handle_msg(Msg) ->
-    case ircmsg:command(Msg) of
-        <<"PRIVMSG">> -> handle_privmsg(Msg);
-        <<"PING">> -> ircmsg:create(<<>>,<<"PONG">>,[],ircmsg:tail(Msg));
-        <<"JOIN">> -> ?MODULE:handle_join(Msg);
-        <<"002">> -> ircmsg:create(<<>>,<<"JOIN">>,[<<"#erlounge">>],<<>>); %% this is a little crude, it won't work on all IRC servers.
-        _ -> io:format("Unknown: ~p~n",[Msg])
-    end.
+    Prefix = ircmsg:prefix(Msg),
+    Command = ircmsg:command(Msg),
+    Arguments = ircmsg:arguments(Msg),    
+    Tail = ircmsg:tail(Msg),
+    handle(Prefix, Command, Arguments, Tail, Msg).
+
+-spec handle(binary(), binary(), binary(), binary(), ircmsg:ircmsg()) -> ircmsg:ircmsg() | ok.
+handle(_,<<"PRIVMSG">>,_,_,Msg) ->
+    handle_privmsg(Msg);
+handle(_,<<"PING">>,_,Tail,_) ->
+    ircmsg:create(<<>>,<<"PONG">>,[],Tail);
+handle(_,<<"JOIN">>,_,_,Msg) ->
+    ?MODULE:handle_join(Msg);
+handle(_,<<"002">>,_,_,_) ->
+     %% this is a little crude, it won't work on all IRC servers.
+    ircmsg:create(<<>>,<<"JOIN">>,[<<"#erlounge">>],<<>>);
+handle(_,_,_,_,Msg) ->
+    io:format("Unknown: ~p~n",[Msg]).
+   
 
 -spec handle_privmsg(Msg :: ircmsg:ircmsg()) -> ircmsg:ircmsg() | ok.
 handle_privmsg(Msg) ->
