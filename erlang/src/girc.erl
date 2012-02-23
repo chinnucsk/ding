@@ -18,11 +18,11 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([send_msg/2, send_raw/2]).
+-export([send_msg/2, send_raw/2, get_name/1]).
 
 -define(SERVER, ?MODULE).
 
--record(state, {socket, host, port=6667, username, callbackmodule}).
+-record(state, {socket, host, port=6667, username, name}).
 
 -callback handle_msg(Message :: ircmsg:ircmsg()) -> Reply :: ircmsg:ircmsg() | ok.
 
@@ -36,7 +36,10 @@ send_msg(Pid, Msg) ->
 send_raw(Pid, Line) ->
     gen_server:cast(Pid, {send_raw, Line}).
 
-
+-spec get_name(atom()) -> atom().
+get_name(Name) ->
+    Str = atom_to_list(Name) ++ "backend",
+    list_to_atom(Str).
 %%--------------------------------------------------------------------
 %% @doc
 %% Starts the server
@@ -44,8 +47,8 @@ send_raw(Pid, Line) ->
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link(Module, Host, Port, UserName) ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [Module, Host, Port, UserName], []).
+start_link(Host, Port, UserName, Name) ->
+    gen_server:start_link({local, get_name(Name)}, ?MODULE, [Host, Port, UserName, Name], []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -62,8 +65,8 @@ start_link(Module, Host, Port, UserName) ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([Module, Host, Port, UserName]) ->
-    {ok, #state{host=Host, port=Port, username=UserName, callbackmodule=Module}, 0}.
+init([Host, Port, UserName, Name]) ->
+    {ok, #state{host=Host, port=Port, username=UserName, name=Name}, 0}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -114,21 +117,17 @@ handle_cast(_Msg, State) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_info(timeout, #state{host=Host, port=Port, username=UserName, callbackmodule=Module}) ->
+handle_info(timeout, #state{host=Host, port=Port, username=UserName}) ->
     {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, line}, {active, true}]),
     %% Do the IRC login
     gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
     gen_tcp:send(Sock, "\r\n"),
     gen_tcp:send(Sock, "NICK "++UserName),
     gen_tcp:send(Sock, "\r\n"),
-    {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module}};
-handle_info({tcp, _S, Data}, #state{socket=Sock, callbackmodule=Mod}=State) ->
+    {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName}};
+handle_info({tcp, _S, Data}, #state{name=Name}=State) ->
     Msg = ircmsg:parse_line(Data),
-    Response = Mod:handle_msg(Msg),
-    case Response of
-        none -> ok;
-        _ -> send_ircmsg(Sock, Response)
-    end,
+    gen_event:notify(Name, {ircmsg, irmsg:prefix(Msg), ircmsg:command(Msg), ircmsg:arguments(Msg), ircmsg:tail(Msg)}),
     {noreply, State};
 handle_info({tcp_closed, _Port}, State) ->
     io:format("DISCONNECTED!!!!"),
@@ -136,7 +135,7 @@ handle_info({tcp_closed, _Port}, State) ->
     %% or let the supervisor do that later?
     {stop, disconnected, State};
 handle_info(Info, State) ->
-    io:format("UNKNOWN: ~p~n", [Info]),
+    io:format("girc2UNKNOWN: ~p~n", [Info]),
     {noreply, State}.
 
 %%--------------------------------------------------------------------

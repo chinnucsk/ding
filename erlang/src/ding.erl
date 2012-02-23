@@ -39,7 +39,12 @@ start(_StartType, _StartArgs) ->
             {ok, Pid};
         Error ->
             Error
-                end.
+    end.
+    %% Bot = {dingding, {'bot', start_link, [dingding]},
+    %%        permanent, 2000, worker, ['bot']},
+    %% Backend = {backend, {girc, start_link, ["irc.freenode.net",6667, "dingding", dingding]},
+    %%            permanent, 2000, worker, [girc]}.
+
 
 %%--------------------------------------------------------------------
 %% @private

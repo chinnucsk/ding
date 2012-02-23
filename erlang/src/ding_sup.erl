@@ -55,15 +55,8 @@ init([]) ->
     MaxSecondsBetweenRestarts = 3600,
 
     SupFlags = {RestartStrategy, MaxRestarts, MaxSecondsBetweenRestarts},
-
-    Restart = permanent,
-    Shutdown = 2000,
-    Type = worker,
     
-    MyChild = {'yflbot', {'bot', start, []},
-               permanent, 2000, worker, ['bot']},
-    
-    {ok, {SupFlags, [MyChild]}}.
+    {ok, {SupFlags, []}}.
 
 %%%===================================================================
 %%% Internal functions

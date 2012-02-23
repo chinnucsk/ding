@@ -55,6 +55,7 @@ show(#ircmsg{command = <<"PRIVMSG">>, arguments=A, tail=T}=Msg) ->
     Nick = binary_to_list(nick(Msg)),
     Content = binary_to_list(T),
     io:format("~s <~s> ~s",[Channel, Nick, Content]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%% Helper Functions
