@@ -9,6 +9,8 @@
 -module(girc).
 
 -behaviour(gen_server).
+-include("../include/irc.hrl").
+
 -define(COLON, 58).
 
 %% API
@@ -18,19 +20,28 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([send_msg/2, send_raw/2]).
+-export([send_msg/2, send_raw/2, ping_server/1]).
 
 -define(SERVER, ?MODULE).
 
--record(state, {socket, host, port=6667, username, callbackmodule}).
+-record(state, {socket, 
+                host, 
+                port=6667, 
+                username, 
+                callbackmodule,
+                passthrough=true }).
 
--callback handle_msg(Message :: ircmsg:ircmsg()) -> Reply :: ircmsg:ircmsg() | ok.
+%%%===================================================================
+%%% Behaviour definition
+%%%===================================================================
+-callback handle_msg(Message :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
+
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
-%% -spec send_msg(Pid :: pid()) -> Msg :: ircmsg:ircmsg().
+%% -spec send_msg(Pid :: pid()) -> Msg :: ircmsg:#ircmsg{}.
 send_msg(Pid, Msg) ->
     gen_server:cast(Pid, {send_msg, Msg}).
 send_raw(Pid, Line) ->
@@ -116,25 +127,33 @@ handle_cast(_Msg, State) ->
 %%--------------------------------------------------------------------
 handle_info(timeout, #state{host=Host, port=Port, username=UserName, callbackmodule=Module}) ->
     {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, line}, {active, true}]),
+    %% helper process to check if we're still connected.
+    spawn_link(?MODULE, ping_server, [Sock]),
     %% Do the IRC login
     gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
     gen_tcp:send(Sock, "\r\n"),
     gen_tcp:send(Sock, "NICK "++UserName),
     gen_tcp:send(Sock, "\r\n"),
     {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module}};
-handle_info({tcp, _S, Data}, #state{socket=Sock, callbackmodule=Mod}=State) ->
+handle_info({tcp, _S, Data}, #state{socket=Sock, callbackmodule=Mod, passthrough=PT}=State) ->
     Msg = ircmsg:parse_line(Data),
-    Response = Mod:handle_msg(Msg),
-    case Response of
-        none -> ok;
-        _ -> send_ircmsg(Sock, Response)
+    case PT of
+        true -> 
+            Response = Mod:handle_msg(Msg),
+            case Response of
+                none -> ok;
+                _ -> send_ircmsg(Sock, Response)
+            end;
+        false ->
+            ok %% TODO: Parse most of the messages here and create callback functions for them.
     end,
     {noreply, State};
 handle_info({tcp_closed, _Port}, State) ->
     io:format("DISCONNECTED!!!!"),
-    %% we really should do something here to reconnect?
-    %% or let the supervisor do that later?
     {stop, disconnected, State};
+handle_info({tcp_error, _Socket, Reason}, State) ->
+    io:format("TCP ERROR! ~p~n",[Reason]),
+    {stop, error, State};
 handle_info(Info, State) ->
     io:format("UNKNOWN: ~p~n", [Info]),
     {noreply, State}.
@@ -176,4 +195,22 @@ send_ircmsg(Sock, Msg) ->
 send_rawmsg(Sock, Line) ->
     gen_tcp:send(Sock, [Line, "\r\n"]).
 
+ping_server(Sock) ->
+    receive
+    after 57000 ->
+            send_rawmsg(Sock, <<"PING :ConnectionCheck">>),
+            ping_server(Sock)
+    end.
+
+
+%%%===================================================================
+%%% Main dispatcher
+%%%===================================================================
+
+%% -spec handle(#ircmsg{}) -> ok.
+%% handle(#ircmsg{prefix=P, command=C, 
+
+%%%===================================================================
+%%% Callbacks
+%%%===================================================================
 
