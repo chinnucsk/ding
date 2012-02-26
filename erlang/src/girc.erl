@@ -20,7 +20,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--export([send_msg/2, send_raw/2, ping_server/1]).
+-export([send_msg/2, send_raw/2]).
 
 -define(SERVER, ?MODULE).
 
@@ -127,8 +127,6 @@ handle_cast(_Msg, State) ->
 %%--------------------------------------------------------------------
 handle_info(timeout, #state{host=Host, port=Port, username=UserName, callbackmodule=Module}) ->
     {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, line}, {active, true}]),
-    %% helper process to check if we're still connected.
-    spawn_link(?MODULE, ping_server, [Sock]),
     %% Do the IRC login
     gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
     gen_tcp:send(Sock, "\r\n"),
@@ -194,13 +192,6 @@ send_ircmsg(Sock, Msg) ->
 
 send_rawmsg(Sock, Line) ->
     gen_tcp:send(Sock, [Line, "\r\n"]).
-
-ping_server(Sock) ->
-    receive
-    after 57000 ->
-            send_rawmsg(Sock, <<"PING :ConnectionCheck">>),
-            ping_server(Sock)
-    end.
 
 
 %%%===================================================================
