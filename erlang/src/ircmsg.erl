@@ -21,7 +21,7 @@
 -export([create/4]).
 %% helpers
 -export([nick/1, show/1]).
--export([nick_from_prefix/1]).
+-export([nick_from_prefix/1, is_numeric/1]).
 %% accessors
 -export([prefix/1, command/1, arguments/1, tail/1]).
 
@@ -201,4 +201,15 @@ to_line_test() ->
     ?assertEqual(<<"command :this is the tail">>, 
                  to_line(#ircmsg{command = <<"command">>, tail="this is the tail"})).
     
-                 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+-spec is_numeric(Msg :: #ircmsg{}) -> { true | false, integer() }.
+is_numeric(#ircmsg{command=C}) ->
+    Cmd = binary:bin_to_list(C), 
+    case string:to_integer(Cmd) of
+        {error, _} -> {false, 0};
+        {I, _} -> {true, I}
+    end.

@@ -17,10 +17,10 @@
 -export([start_link/4]).
 
 %% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, 
          terminate/2, code_change/3]).
 
--export([send_msg/2, send_raw/2]).
+-export([send_msg/2, send_raw/2, handle/2]).
 
 -define(SERVER, ?MODULE).
 
@@ -28,14 +28,17 @@
                 host, 
                 port=6667, 
                 username, 
-                callbackmodule,
+                callbackmodule, 
                 passthrough=true }).
 
 %%%===================================================================
 %%% Behaviour definition
 %%%===================================================================
 -callback handle_msg(Message :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
-
+-callback received_join(Channel :: binary(), Nick :: binary(), Msg :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
+-callback received_quit(Nick :: binary(), Msg :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
+-callback received_privmsg(From :: binary(), To :: binary(), Msg :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
+-callback received_numeric_reply(Int :: integer(), Msg :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
 
 %%%===================================================================
 %%% API
@@ -46,7 +49,6 @@ send_msg(Pid, Msg) ->
     gen_server:cast(Pid, {send_msg, Msg}).
 send_raw(Pid, Line) ->
     gen_server:cast(Pid, {send_raw, Line}).
-
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -91,7 +93,7 @@ init([Module, Host, Port, UserName]) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_call(_Request, _From, State) ->
-    Reply = ok,
+    Reply = ok, 
     {reply, Reply, State}.
 
 %%--------------------------------------------------------------------
@@ -105,10 +107,10 @@ handle_call(_Request, _From, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast({send_raw, Line}, #state{socket=Sock}=State) ->
-    send_rawmsg(Sock, Line),
+    send_rawmsg(Sock, Line), 
     {noreply, State};
 handle_cast({send_msg, Msg}, #state{socket=Sock}=State) ->
-    send_ircmsg(Sock, Msg),
+    send_ircmsg(Sock, Msg), 
     {noreply, State};
 handle_cast(stop, State) ->
     {stop, normal, State};
@@ -126,34 +128,38 @@ handle_cast(_Msg, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_info(timeout, #state{host=Host, port=Port, username=UserName, callbackmodule=Module}) ->
-    {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, line}, {active, true}]),
+    {ok, Sock} = gen_tcp:connect(Host, Port, [binary, {packet, line}, {active, true}]), 
     %% Do the IRC login
-    gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName),
-    gen_tcp:send(Sock, "\r\n"),
-    gen_tcp:send(Sock, "NICK "++UserName),
-    gen_tcp:send(Sock, "\r\n"),
+    gen_tcp:send(Sock, "NICK "++UserName), 
+    gen_tcp:send(Sock, "\r\n"), 
+    gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName), 
+    gen_tcp:send(Sock, "\r\n"), 
     {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module}};
 handle_info({tcp, _S, Data}, #state{socket=Sock, callbackmodule=Mod, passthrough=PT}=State) ->
-    Msg = ircmsg:parse_line(Data),
+    Msg = ircmsg:parse_line(Data), 
     case PT of
         true -> 
-            Response = Mod:handle_msg(Msg),
+            Response = Mod:handle_msg(Msg), 
             case Response of
                 none -> ok;
                 _ -> send_ircmsg(Sock, Response)
             end;
         false ->
-            ok %% TODO: Parse most of the messages here and create callback functions for them.
-    end,
+            Response = ?MODULE:handle(Mod, Msg), 
+            case Response of
+                ok -> ok;
+                _ -> send_ircmsg(Sock, Response)
+            end
+    end, 
     {noreply, State};
 handle_info({tcp_closed, _Port}, State) ->
-    io:format("DISCONNECTED!!!!"),
+    io:format("DISCONNECTED!!!!"), 
     {stop, disconnected, State};
 handle_info({tcp_error, _Socket, Reason}, State) ->
-    io:format("TCP ERROR! ~p~n",[Reason]),
+    io:format("TCP ERROR! ~p~n", [Reason]), 
     {stop, error, State};
 handle_info(Info, State) ->
-    io:format("UNKNOWN: ~p~n", [Info]),
+    io:format("UNKNOWN: ~p~n", [Info]), 
     {noreply, State}.
 
 %%--------------------------------------------------------------------
@@ -188,7 +194,7 @@ code_change(_OldVsn, State, _Extra) ->
 send_ircmsg(_Sock, ok) ->
     ok;
 send_ircmsg(Sock, Msg) ->
-    gen_tcp:send(Sock, iolist_to_binary([ircmsg:to_line(Msg),<<"\r\n">>])).
+    gen_tcp:send(Sock, iolist_to_binary([ircmsg:to_line(Msg), <<"\r\n">>])).
 
 send_rawmsg(Sock, Line) ->
     gen_tcp:send(Sock, [Line, "\r\n"]).
@@ -198,10 +204,20 @@ send_rawmsg(Sock, Line) ->
 %%% Main dispatcher
 %%%===================================================================
 
-%% -spec handle(#ircmsg{}) -> ok.
-%% handle(#ircmsg{prefix=P, command=C, 
-
-%%%===================================================================
-%%% Callbacks
-%%%===================================================================
-
+-spec handle(atom(), #ircmsg{}) -> ok.
+handle(_Mod, #ircmsg{command= <<"PING">>, tail=T}=_Msg) ->
+    ircmsg:create(<<>>, <<"PONG">>, [], T);
+handle(Mod, #ircmsg{prefix=P, command= <<"JOIN">>, arguments=A, tail=_T}=Msg) ->
+    Mod:received_join(hd(A), ircmsg:nick_from_prefix(P), Msg);
+handle(Mod, #ircmsg{prefix=P, command= <<"QUIT">>, arguments=_A, tail=_T}=Msg) ->
+    Mod:received_quit(ircmsg:nick_from_prefix(P), Msg);
+handle(Mod, #ircmsg{prefix=P, command= <<"PRIVMSG">>, arguments=A, tail=_T}=Msg) ->
+    Mod:received_privmsg(ircmsg:nick_from_prefix(P), hd(A), Msg);
+handle(Mod, #ircmsg{prefix=P, command= <<"PRIVMSG">>, arguments=A, tail=_T}=Msg) ->
+    ok;
+handle(Mod, #ircmsg{prefix=_P, command=_C, arguments=_A, tail=_T}=Msg) ->
+    case ircmsg:is_numeric(Msg) of
+        {true, Nr} -> Mod:received_numeric_reply(Nr, Msg);
+        {false, _} -> ok
+    end.
+    
