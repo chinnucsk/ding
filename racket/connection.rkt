@@ -49,6 +49,7 @@
     (displayln "Logging in")
     (reply (IRCmsg "" "NICK" nick ""))
     (reply (IRCmsg "" "USER" (string-append nick " " nick " " nick) nick))    
+    (reply (IRCmsg "" "JOIN" "#yfl" ""))
     (set! loggedin #t)))
 
 (define (connect-to-freenode)

@@ -21,4 +21,4 @@
                  (reply (IRCmsg "" "CTCPREPLY" (get-nick msg) "VERSION Ding IRC Bot. v0.1")))))
 
 
-(connect-to-test)
+(connect-to-freenode)

@@ -109,15 +109,15 @@
 (define (to-string ircmsg)
   (define (get-prefix ircmsg)
     (if (not-empty?(IRCmsg-prefix ircmsg))
-        (string-append ":" (IRCmsg-prefix ircmsg) " ")
+        (string-append ":" (IRCmsg-prefix ircmsg))
         ""))
   (define (get-params ircmsg)
     (if (not-empty? (IRCmsg-params ircmsg))
-        (string-append (IRCmsg-params ircmsg) " ")
+        (string-append " " (IRCmsg-params ircmsg))
         ""))
   (define (get-tail ircmsg)
     (if (not-empty? (IRCmsg-tail ircmsg))
-        (string-append ":" (IRCmsg-tail ircmsg) "\n")
+        (string-append " :" (IRCmsg-tail ircmsg) "\n")
         "\n"))
   (string-append (get-prefix ircmsg)
                  (string-append (IRCmsg-command ircmsg) " ")
@@ -127,13 +127,13 @@
 (define (to-bytes ircmsg)
   (define (get-prefix ircmsg)
     (string->bytes/utf-8 
-     (if (not-empty?(IRCmsg-prefix ircmsg))
-        (string-append ":" (IRCmsg-prefix ircmsg) " ")
-        "")))
+     (if (not-empty? (IRCmsg-prefix ircmsg))
+         (string-append ":" (IRCmsg-prefix ircmsg) " ")
+         "")))
   (define (get-params ircmsg)
     (string->bytes/utf-8 (if (not-empty? (IRCmsg-params ircmsg))
-        (string-append (IRCmsg-params ircmsg) " ")
-        "")))
+                             (string-append (IRCmsg-params ircmsg) " ")
+                             "")))
   (define (get-tail ircmsg)
     (string->bytes/utf-8 
      (if (not-empty? (IRCmsg-tail ircmsg))
@@ -145,14 +145,14 @@
          (is-action (string=? cmd "ACTION"))
          (is-ctcp (or is-ctcp-req is-ctcp-rep is-action))]
     (bytes-append (get-prefix ircmsg)
-                   (cond [is-ctcp-req (string->bytes/utf-8 "PRIVMSG ")]
-                         [is-ctcp-rep (string->bytes/utf-8 "NOTICE ")]
-                         [is-action (string->bytes/utf-8 "ACTION ")]
-                         [(not is-ctcp) (string->bytes/utf-8 " ")])
-                   (get-params ircmsg)
-                   (if is-ctcp
-                       (bytes-append #" :" #"\1" (get-tail ircmsg) #"\1\n")
-                       (bytes-append #" :" (get-tail ircmsg) #"\n")))))
+                  (cond [is-ctcp-req (string->bytes/utf-8 "PRIVMSG ")]
+                        [is-ctcp-rep (string->bytes/utf-8 "NOTICE ")]
+                        [is-action (string->bytes/utf-8 "ACTION ")]
+                        [(not is-ctcp) (string->bytes/utf-8 " ")])
+                  (get-params ircmsg)
+                  (if is-ctcp
+                      (bytes-append #" :" #"\1" (get-tail ircmsg) #"\1\n")
+                      (bytes-append #" :" (get-tail ircmsg) #"\n")))))
 
 
 (define parser-tests
@@ -172,4 +172,3 @@
      )))
 
 
-      
