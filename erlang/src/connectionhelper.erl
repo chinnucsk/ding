@@ -12,7 +12,7 @@
 
 start(Sock, Pid) ->
     receive
-    after 5000 ->
+    after 15000 ->
             ping_server(Sock, Pid)
     end.
 
