@@ -20,7 +20,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, 
          terminate/2, code_change/3]).
 
--export([send_msg/2, send_raw/2, handle/2]).
+-export([send_msg/2, send_raw/2, handle/2, handle_numeric_reply/2]).
 
 -define(SERVER, ?MODULE).
 
@@ -29,7 +29,9 @@
                 port=6667, 
                 username, 
                 callbackmodule, 
-                passthrough=true }).
+                passthrough=false,
+                connectionhelper=undefined
+               }).
 
 %%%===================================================================
 %%% Behaviour definition
@@ -38,7 +40,7 @@
 -callback handle_join(Channel :: binary(), Nick :: binary(), Msg :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
 -callback handle_quit(Nick :: binary(), Msg :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
 -callback handle_privmsg(From :: binary(), To :: binary(), Msg :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
--callback handle_numeric_reply(Int :: integer(), Msg :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
+%% -callback handle_numeric_reply(Int :: integer(), Msg :: #ircmsg{}) -> Reply :: #ircmsg{} | ok.
 
 %%%===================================================================
 %%% API
@@ -114,6 +116,17 @@ handle_cast({send_msg, Msg}, #state{socket=Sock}=State) ->
     {noreply, State};
 handle_cast(stop, State) ->
     {stop, normal, State};
+handle_cast(ping_server, State) ->
+    io:format("Pinging...~n"),
+    gen_server:cast(self(), {send_raw, <<"PING :DingBotConnCheck">>}),
+    {noreply, State};
+handle_cast(got_pong, #state{connectionhelper=C}=State) ->
+    io:format("Got pong.~n"),
+    C ! pong,
+    {noreply, State};
+handle_cast(no_pong, State) ->
+    io:format("Disconnected apparently..."),
+    {stop, disconnected, State};
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
@@ -134,7 +147,10 @@ handle_info(timeout, #state{host=Host, port=Port, username=UserName, callbackmod
     gen_tcp:send(Sock, "\r\n"), 
     gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName), 
     gen_tcp:send(Sock, "\r\n"), 
-    {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module}};
+    %% spawn the helper process to keep pinging the server.
+    %% needs to be its own module probably.
+    ConHelpPid = spawn_link(connectionhelper, start, [Sock, self()]),
+    {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module, connectionhelper=ConHelpPid}};
 handle_info({tcp, _S, Data}, #state{socket=Sock, callbackmodule=Mod, passthrough=PT}=State) ->
     Msg = ircmsg:parse_line(Data), 
     case PT of
@@ -207,18 +223,20 @@ send_rawmsg(Sock, Line) ->
 -spec handle(atom(), #ircmsg{}) -> ok.
 handle(_Mod, #ircmsg{command= <<"PING">>, tail=T}=_Msg) ->
     ircmsg:create(<<>>, <<"PONG">>, [], T);
+handle(_Mod, #ircmsg{prefix=_P, command= <<"PONG">>, arguments=_A, tail=_T}=_Msg) ->
+    io:format("Got a pong back, casting to self()~n"),
+    gen_server:cast(self(), got_pong);
 handle(Mod, #ircmsg{prefix=P, command= <<"JOIN">>, arguments=A, tail=_T}=Msg) ->
     Mod:handle_join(hd(A), ircmsg:nick_from_prefix(P), Msg);
 handle(Mod, #ircmsg{prefix=P, command= <<"QUIT">>, arguments=_A, tail=_T}=Msg) ->
     Mod:handle_quit(ircmsg:nick_from_prefix(P), Msg);
 handle(Mod, #ircmsg{prefix=P, command= <<"PRIVMSG">>, arguments=A, tail=_T}=Msg) ->
     Mod:handle_privmsg(ircmsg:nick_from_prefix(P), hd(A), Msg);
-handle(Mod, #ircmsg{prefix=P, command= <<"PRIVMSG">>, arguments=A, tail=_T}=Msg) ->
-    ok;
-handle(Mod, #ircmsg{prefix=_P, command=_C, arguments=_A, tail=_T}=Msg) ->
+handle(_Mod, #ircmsg{prefix=_P, command=_C, arguments=_A, tail=_T}=Msg) ->
     case ircmsg:is_numeric(Msg) of
         {true, Nr} -> ?MODULE:handle_numeric_reply(Nr, Msg);
-        {false, _} -> ok
+        {false, _} -> io:format("~p~n",[Msg]),
+                      ok
     end.
     
 %%%===================================================================
@@ -234,16 +252,16 @@ handle(Mod, #ircmsg{prefix=_P, command=_C, arguments=_A, tail=_T}=Msg) ->
 %%% The server sends Replies 001 to 004 to a user upon
 %%% successful registration.
 %% RPL_WELCOME
-handle_numeric_reply(001, Msg) -> 
+handle_numeric_reply(001, _Msg) -> 
     ok;
 %% RPL_YOURHOST
-handle_numeric_reply(002, Msg) ->
+handle_numeric_reply(002, _Msg) ->
     ok;
 %% RPL_CREATED
-handle_numeric_reply(003, Msg) ->
+handle_numeric_reply(003, _Msg) ->
     ok;
 %% RPL_MYINFO
-handle_numeric_reply(004, Msg) ->
+handle_numeric_reply(004, _Msg) ->
     ok;
 
 %% Sent by the server to a user to suggest an alternative
@@ -251,7 +269,7 @@ handle_numeric_reply(004, Msg) ->
 %% refused because the server is already full.
 
 %% RPL_BOUNCE
-handle_numeric_reply(005, Msg) ->
+handle_numeric_reply(005, _Msg) ->
     ok;
 
 %% - Reply format used by USERHOST to list replies to
@@ -266,14 +284,14 @@ handle_numeric_reply(005, Msg) ->
 %%   respectively.
 
 %% RPL_USERHOST
-handle_numeric_reply(302, Msg) ->
+handle_numeric_reply(302, _Msg) ->
     ok;
 
 %% - Reply format used by ISON to list replies to the
 %%   query list.
 
 %% RPL_ISON
-handle_numeric_reply(303, Msg) ->
+handle_numeric_reply(303, _Msg) ->
     ok;
 
 %% - These replies are used with the AWAY command (if
@@ -284,13 +302,13 @@ handle_numeric_reply(303, Msg) ->
 %% client removes and sets an AWAY message.
 
 %% RPL_AWAY
-handle_numeric_reply(301, Msg) ->
+handle_numeric_reply(301, _Msg) ->
     ok;
 %% RPL_UNAWAY
-handle_numeric_reply(305, Msg) ->
+handle_numeric_reply(305, _Msg) ->
     ok;
 %% RPL_NOWAWAY
-handle_numeric_reply(306, Msg) ->
+handle_numeric_reply(306, _Msg) ->
     ok;
 
 %% - Replies 311 - 313, 317 - 319 are all replies
@@ -309,22 +327,22 @@ handle_numeric_reply(306, Msg) ->
 %% the end of processing a WHOIS message.
 
 %% RPL_WHOISUSER
-handle_numeric_reply(311, Msg) ->
+handle_numeric_reply(311, _Msg) ->
     ok;
 %% RPL_WHOISSERVER
-handle_numeric_reply(312, Msg) ->
+handle_numeric_reply(312, _Msg) ->
     ok;
 %% RPL_WHOISOPERATOR
-handle_numeric_reply(313, Msg) ->
+handle_numeric_reply(313, _Msg) ->
     ok;
 %% RPL_WHOISIDLE
-handle_numeric_reply(317, Msg) ->
+handle_numeric_reply(317, _Msg) ->
     ok;
 %% RPL_ENDOFWHOIS
-handle_numeric_reply(318, Msg) ->
+handle_numeric_reply(318, _Msg) ->
     ok;
 %% RPL_WHOISCHANNELS
-handle_numeric_reply(319, Msg) ->
+handle_numeric_reply(319, _Msg) ->
     ok;
 
 %% - When replying to a WHOWAS message, a server MUST use
@@ -335,10 +353,10 @@ handle_numeric_reply(319, Msg) ->
 %% and it was an error).
 
 %% RPL_WHOWASUSER
-handle_numeric_reply(314, Msg) ->
+handle_numeric_reply(314, _Msg) ->
     ok;
 %% RPL_ENDOFWHOWAS
-handle_numeric_reply(369, Msg) ->
+handle_numeric_reply(369, _Msg) ->
     ok;
 
 %% - Replies RPL_LIST, RPL_LISTEND mark the actual replies
@@ -347,16 +365,16 @@ handle_numeric_reply(369, Msg) ->
 %% only the end reply MUST be sent.
 
 %% RPL_LIST
-handle_numeric_reply(322, Msg) ->
+handle_numeric_reply(322, _Msg) ->
     ok;
 %% RPL_LISTEND
-handle_numeric_reply(323, Msg) ->
+handle_numeric_reply(323, _Msg) ->
     ok;
 %% RPL_UNIQOPIS
-handle_numeric_reply(325, Msg) ->
+handle_numeric_reply(325, _Msg) ->
     ok;
 %% RPL_CHANNELMODEIS
-handle_numeric_reply(324, Msg) ->
+handle_numeric_reply(324, _Msg) ->
     ok;
 
 %% - When sending a TOPIC message to determine the
@@ -365,10 +383,10 @@ handle_numeric_reply(324, Msg) ->
 %% RPL_NOTOPIC.
 
 %% RPL_NOTOPIC
-handle_numeric_reply(331, Msg) ->
+handle_numeric_reply(331, _Msg) ->
     ok;
 %% RPL_TOPIC
-handle_numeric_reply(332, Msg) ->
+handle_numeric_reply(332, _Msg) ->
     ok;
 
 %% - Returned by the server to indicate that the
@@ -376,14 +394,14 @@ handle_numeric_reply(332, Msg) ->
 %% being passed onto the end client.
 
 %% RPL_INVITING
-handle_numeric_reply(341, Msg) ->
+handle_numeric_reply(341, _Msg) ->
     ok;
 
 %% - Returned by a server answering a SUMMON message to
 %% indicate that it is summoning that user.
 
 %% RPL_SUMMONING
-handle_numeric_reply(342, Msg) ->
+handle_numeric_reply(342, _Msg) ->
     ok;
 
 %% - When listing the 'invitations masks' for a given channel,
@@ -394,10 +412,10 @@ handle_numeric_reply(342, Msg) ->
 %% RPL_ENDOFINVITELIST MUST be sent.
 
 %% RPL_INVITELIST
-handle_numeric_reply(346, Msg) ->
+handle_numeric_reply(346, _Msg) ->
     ok;
 %% RPL_ENDOFINVITELIST
-handle_numeric_reply(347, Msg) ->
+handle_numeric_reply(347, _Msg) ->
     ok;
 
 %% - When listing the 'exception masks' for a given channel,
@@ -408,10 +426,10 @@ handle_numeric_reply(347, Msg) ->
 %% a RPL_ENDOFEXCEPTLIST MUST be sent.
 
 %% RPL_EXCEPTLIST
-handle_numeric_reply(348, Msg) ->
+handle_numeric_reply(348, _Msg) ->
     ok;
 %% RPL_ENDOFEXCEPTLIST
-handle_numeric_reply(349, Msg) ->
+handle_numeric_reply(349, _Msg) ->
     ok;
 
 %% - Reply by the server showing its version details.
@@ -424,7 +442,7 @@ handle_numeric_reply(349, Msg) ->
 %% the version or further version details.
 
 %% RPL_VERSION
-handle_numeric_reply(351, Msg) ->
+handle_numeric_reply(351, _Msg) ->
     ok;
 
 %% - The RPL_WHOREPLY and RPL_ENDOFWHO pair are used
@@ -436,10 +454,10 @@ handle_numeric_reply(351, Msg) ->
 %% the item.
 
 %% RPL_WHOREPLY
-handle_numeric_reply(352, Msg) ->
+handle_numeric_reply(352, _Msg) ->
     ok;
 %% RPL_ENDOFWHO
-handle_numeric_reply(315, Msg) ->
+handle_numeric_reply(315, _Msg) ->
     ok;
 
 %% - To reply to a NAMES message, a reply pair consisting
@@ -453,10 +471,10 @@ handle_numeric_reply(315, Msg) ->
 %% the end.        
 
 %% RPL_NAMREPLY
-handle_numeric_reply(353, Msg) ->
+handle_numeric_reply(353, _Msg) ->
     ok;
 %% RPL_ENDOFNAMES
-handle_numeric_reply(366, Msg) ->
+handle_numeric_reply(366, _Msg) ->
     ok;
 
 %% - In replying to the LINKS message, a server MUST send
@@ -464,10 +482,10 @@ handle_numeric_reply(366, Msg) ->
 %% end of the list using an RPL_ENDOFLINKS reply.
 
 %% RPL_LINKS
-handle_numeric_reply(364, Msg) ->
+handle_numeric_reply(364, _Msg) ->
     ok;
 %% RPL_ENDOFLINKS
-handle_numeric_reply(365, Msg) ->
+handle_numeric_reply(365, _Msg) ->
     ok;
 
 %% - When listing the active 'bans' for a given channel,
@@ -478,10 +496,10 @@ handle_numeric_reply(365, Msg) ->
 %% RPL_ENDOFBANLIST MUST be sent.
 
 %% RPL_BANLIST
-handle_numeric_reply(367, Msg) ->
+handle_numeric_reply(367, _Msg) ->
     ok;
 %% RPL_ENDOFBANLIST
-handle_numeric_reply(368, Msg) ->
+handle_numeric_reply(368, _Msg) ->
     ok;
 
 %% - A server responding to an INFO message is required to
@@ -490,10 +508,10 @@ handle_numeric_reply(368, Msg) ->
 %% replies.
 
 %% RPL_INFO
-handle_numeric_reply(371, Msg) ->
+handle_numeric_reply(371, _Msg) ->
     ok;
 %% RPL_ENDOFINFO
-handle_numeric_reply(374, Msg) ->
+handle_numeric_reply(374, _Msg) ->
     ok;
 
 %% - When responding to the MOTD message and the MOTD file
@@ -504,13 +522,14 @@ handle_numeric_reply(374, Msg) ->
 %% RPL_ENDOFMOTD (after).
 
 %% RPL_MOTDSTART
-handle_numeric_reply(375, Msg) ->
+handle_numeric_reply(375, _Msg) ->
     ok;
 %% RPL_MOTD
-handle_numeric_reply(372, Msg) ->
+handle_numeric_reply(372, _Msg) ->
     ok;
 %% RPL_ENDOFMOTD
-handle_numeric_reply(376, Msg) ->
+handle_numeric_reply(376, _Msg) ->
+    gen_server:cast(self(), {send_raw, <<"JOIN #erlounge">>}),
     ok;
 
 %% - RPL_YOUREOPER is sent back to a client which has
@@ -518,7 +537,7 @@ handle_numeric_reply(376, Msg) ->
 %% operator status.
 
 %% RPL_YOUREOPER
-handle_numeric_reply(381, Msg) ->
+handle_numeric_reply(381, _Msg) ->
     ok;
 
 %% - If the REHASH option is used and an operator sends
@@ -526,14 +545,14 @@ handle_numeric_reply(381, Msg) ->
 %% the operator.
 
 %% RPL_REHASHING
-handle_numeric_reply(382, Msg) ->
+handle_numeric_reply(382, _Msg) ->
     ok;
 
 %% - Sent by the server to a service upon successful
 %% registration.
 
 %% RPL_YOURESERVICE
-handle_numeric_reply(383, Msg) ->
+handle_numeric_reply(383, _Msg) ->
     ok;
 
 %% - When replying to the TIME message, a server MUST send
@@ -543,7 +562,7 @@ handle_numeric_reply(383, Msg) ->
 %% time string.
 
 %% RPL_TIME
-handle_numeric_reply(391, Msg) ->
+handle_numeric_reply(391, _Msg) ->
     ok;
 
 %% - If the USERS message is handled by a server, the
@@ -554,214 +573,20 @@ handle_numeric_reply(391, Msg) ->
 %% RPL_ENDOFUSERS.
 
 %% RPL_USERSSTART
-handle_numeric_reply(392, Msg) ->
+handle_numeric_reply(392, _Msg) ->
     ok;
 %% RPL_USERS
-handle_numeric_reply(393, Msg) ->
+handle_numeric_reply(393, _Msg) ->
     ok;
 %% RPL_ENDOFUSERS
-handle_numeric_reply(394, Msg) ->
+handle_numeric_reply(394, _Msg) ->
     ok;
 %% RPL_NOUSERS
-handle_numeric_reply(395, Msg) ->
+handle_numeric_reply(395, _Msg) ->
     ok;
+handle_numeric_reply(_, Msg) ->
+    io:format("Unhandled: ~p ~n",[Msg]).
 %% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
+%% handle_numeric_reply(, Msg) ->
+%%     ok;
 %% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-%% 
-handle_numeric_reply(, Msg) ->
-    ok;
-
-

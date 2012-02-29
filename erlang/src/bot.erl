@@ -13,6 +13,8 @@
 
 -export([handle/5]).
 
+-export([handle_join/3, handle_quit/2, handle_privmsg/3]).
+
 start() ->
     inets:start(), 
     girc:start_link(?MODULE, "irc.freenode.net", 6667, "dingding").
@@ -28,9 +30,16 @@ handle_msg(Msg) ->
     Tail = ircmsg:tail(Msg), 
     handle(Prefix, Command, Arguments, Tail, Msg).
 
+
+handle_join(Channel, Nick, _Msg) ->
+    io:format("!! ~p joins ~p~n",[Nick, Channel]).
+
+handle_quit(Nick, _Msg) ->
+    io:format("<< ~p quits.~n", [Nick]).
+
 -spec handle(binary(), binary(), binary(), binary(), ircmsg:ircmsg()) -> ircmsg:ircmsg() | ok.
 handle(_, <<"PRIVMSG">>, _, _, Msg) ->
-    handle_privmsg(Msg);
+    ircmsg:show(Msg);
 handle(_, <<"PING">>, _, Tail, _) ->
     ircmsg:create(<<>>, <<"PONG">>, [], Tail);
 handle(P, <<"JOIN">>, A, _, _) ->
@@ -46,9 +55,8 @@ handle(_, _, _, _, Msg) ->
     io:format("Unknown: ~p~n", [Msg]).
 
 
--spec handle_privmsg(Msg :: ircmsg:ircmsg()) -> ircmsg:ircmsg() | ok.
-handle_privmsg(Msg) ->
-    ircmsg:show(Msg).
+handle_privmsg(From, To, Msg) ->
+    io:format("~p => ~p: ~p~n",[From, To, ircmsg:tail(Msg)]).
 
 check_for_url(Line) ->
     Pattern="(http|ftp|https):\\/\\/[\\w\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\., @?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?", 
