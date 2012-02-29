@@ -54,9 +54,8 @@ handle(_, <<"002">>, _, _, _) ->
 handle(_, _, _, _, Msg) ->
     io:format("Unknown: ~p~n", [Msg]).
 
-
 handle_privmsg(From, To, Msg) ->
-    io:format("~p => ~p: ~p~n",[From, To, ircmsg:tail(Msg)]).
+    io:format("~s <~s> ~s",[To, From, ircmsg:tail(Msg)]).
 
 check_for_url(Line) ->
     Pattern="(http|ftp|https):\\/\\/[\\w\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\., @?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?", 
