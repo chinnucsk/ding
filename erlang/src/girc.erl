@@ -117,15 +117,13 @@ handle_cast({send_msg, Msg}, #state{socket=Sock}=State) ->
 handle_cast(stop, State) ->
     {stop, normal, State};
 handle_cast(ping_server, State) ->
-    io:format("Pinging...~n"),
     gen_server:cast(self(), {send_raw, <<"PING :DingBotConnCheck">>}),
     {noreply, State};
 handle_cast(got_pong, #state{connectionhelper=C}=State) ->
-    io:format("Got pong.~n"),
     C ! pong,
     {noreply, State};
 handle_cast(no_pong, State) ->
-    io:format("Disconnected apparently..."),
+    io:format("Disconnected apparently... letting the bot crash.."),
     {stop, disconnected, State};
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -224,7 +222,6 @@ send_rawmsg(Sock, Line) ->
 handle(_Mod, #ircmsg{command= <<"PING">>, tail=T}=_Msg) ->
     ircmsg:create(<<>>, <<"PONG">>, [], T);
 handle(_Mod, #ircmsg{prefix=_P, command= <<"PONG">>, arguments=_A, tail=_T}=_Msg) ->
-    io:format("Got a pong back, casting to self()~n"),
     gen_server:cast(self(), got_pong);
 handle(Mod, #ircmsg{prefix=P, command= <<"JOIN">>, arguments=A, tail=_T}=Msg) ->
     Mod:handle_join(hd(A), ircmsg:nick_from_prefix(P), Msg);
@@ -528,6 +525,9 @@ handle_numeric_reply(375, _Msg) ->
 handle_numeric_reply(372, _Msg) ->
     ok;
 %% RPL_ENDOFMOTD
+%% we're using this to start the joining of channels.
+%% this needs to be converted to a callback function for the 
+%% bot implementers to use.
 handle_numeric_reply(376, _Msg) ->
     gen_server:cast(self(), {send_raw, <<"JOIN #erlounge">>}),
     ok;
