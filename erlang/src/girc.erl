@@ -584,9 +584,76 @@ handle_numeric_reply(394, _Msg) ->
 %% RPL_NOUSERS
 handle_numeric_reply(395, _Msg) ->
     ok;
+
+%% - The RPL_TRACE* are all returned by the server in
+%% response to the TRACE message.  How many are
+%% returned is dependent on the TRACE message and
+%% whether it was sent by an operator or not.  There
+%% is no predefined order for which occurs first.
+%% Replies RPL_TRACEUNKNOWN, RPL_TRACECONNECTING and
+%% RPL_TRACEHANDSHAKE are all used for connections
+%% which have not been fully established and are either
+%% unknown, still attempting to connect or in the
+%% process of completing the 'server handshake'.
+%% RPL_TRACELINK is sent by any server which handles
+%% a TRACE message and has to pass it on to another
+%% server.  The list of RPL_TRACELINKs sent in
+%% response to a TRACE command traversing the IRC
+%% network should reflect the actual connectivity of
+%% the servers themselves along that path.
+
+%% RPL_TRACELINK
+handle_numeric_reply(200, _Msg) -> 
+    ok;
+%% RPL_TRACECONNECTING
+handle_numeric_reply(201, _Msg) -> 
+    ok;
+
+%% RPL_TRACEHANDSHAKE
+handle_numeric_reply(202, _Msg) -> 
+    ok;
+
+%% RPL_TRACEUNKNOWN
+handle_numeric_reply(203, _Msg) -> 
+    ok;
+
+%% RPL_TRACEOPERATOR
+handle_numeric_reply(204, _Msg) -> 
+    ok;
+
+%% RPL_TRACEUSER
+handle_numeric_reply(205, _Msg) -> 
+    ok;
+
+%% RPL_TRACESERVER
+handle_numeric_reply(206, _Msg) -> 
+    ok;
+
+%% RPL_TRACESERVICE
+handle_numeric_reply(207, _Msg) -> 
+    ok;
+
+%% RPL_TRACENEWTYPE
+handle_numeric_reply(208, _Msg) -> 
+    ok;
+
+%% RPL_TRACECLASS
+handle_numeric_reply(209, _Msg) -> 
+    ok;
+
+%% RPL_TRACERECONNECT
+handle_numeric_reply(210, _Msg) -> 
+    ok;
+
+%% RPL_TRACELOG
+handle_numeric_reply(261, _Msg) -> 
+    ok;
+
+%% RPL_TRACEEND
+handle_numeric_reply(262, _Msg) -> 
+    ok;
+
 handle_numeric_reply(_, Msg) ->
     io:format("Unhandled: ~p ~n",[Msg]).
 %% 
-%% handle_numeric_reply(, Msg) ->
-%%     ok;
 %% 
