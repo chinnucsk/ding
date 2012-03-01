@@ -32,27 +32,27 @@ handle_msg(Msg) ->
 
 
 handle_join(Channel, Nick, _Msg) ->
-    io:format("!! ~p joins ~p~n",[Nick, Channel]).
+    io:format("~s joins ~s",[Nick, Channel]).
 
 handle_quit(Nick, _Msg) ->
-    io:format("<< ~p quits.~n", [Nick]).
+    io:format("~s quits.~n", [Nick]).
 
+
+%% this function needs to be fully implemented when girc is started in
+%% passthrough mode.
 -spec handle(binary(), binary(), binary(), binary(), ircmsg:ircmsg()) -> ircmsg:ircmsg() | ok.
 handle(_, <<"PRIVMSG">>, _, _, Msg) ->
     ircmsg:show(Msg);
 handle(_, <<"PING">>, _, Tail, _) ->
     ircmsg:create(<<>>, <<"PONG">>, [], Tail);
 handle(P, <<"JOIN">>, A, _, _) ->
-    io:format("==JOIN==(~p)=> ~p~n",
-              [hd(A),ircmsg:nick_from_prefix(P)]);
+    io:format("~s joins ~s", [ircmsg:nick_from_prefix(P),hd(A)]);
 handle(P, <<"QUIT">>, _, _, _) ->
-    io:format("<==QUIT== ~p~n", [ircmsg:nick_from_prefix(P)]);
-handle(_, <<"002">>, _, _, _) ->
-    %% this is a little crude, it won't work on all IRC servers.
-    %% and it's not configurable, needs to be reworked.
-    ircmsg:create(<<>>, <<"JOIN">>, [<<"#erlounge">>], <<>>);
+    io:format("~s quits.~n", [ircmsg:nick_from_prefix(P)]);
 handle(_, _, _, _, Msg) ->
     io:format("Unknown: ~p~n", [Msg]).
+
+
 
 handle_privmsg(From, To, Msg) ->
     io:format("~s <~s> ~s",[To, From, ircmsg:tail(Msg)]).
@@ -68,3 +68,4 @@ check_for_url(Line) ->
 %% tinyurl(Url) ->
 %%     %% http://tinyurl.com/api-create.php?url=http://scripting.com/
 %%     undefined.
+

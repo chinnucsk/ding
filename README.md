@@ -17,4 +17,9 @@ Notes
 * You need Erlang R15 for the Erlang version to work.
 * The Erlang version will also be a bot-framework. There is an example implementation but you should be able to build your own on top of girc.erl
 
-  
+Erlang Todo
+-----------
+
+* Config file
+* Use other nick when nick is in use.
+* Basicly make sure the bot can stay connected at all times.
