@@ -11,6 +11,8 @@ Goal
 
 This is meant to be a learning experience. Building something I enjoy in as much languages as I can.
 Hopefully this can be useful for other people too.
+Not sure the other languages are going to get a lot of work any time soon since most of my time goes into the Erlang version.
+
 
 Notes
 -----
