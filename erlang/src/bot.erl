@@ -53,7 +53,8 @@ handle(_, _, _, _, Msg) ->
     io:format("Unknown: ~p~n", [Msg]).
 
 
-
+%% This is the main privmsg handler func. Need a good way to do binary/string parsing.
+%% I could just use regexes, but won't those be slow? Perhaps I need to benchmark.
 handle_privmsg(From, To, Msg) ->
     io:format("~s <~s> ~s",[To, From, ircmsg:tail(Msg)]).
 
