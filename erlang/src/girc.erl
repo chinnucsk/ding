@@ -812,7 +812,7 @@ handle_numeric_reply(252, _Msg) ->
 
 %% RPL_LUSERUNKNOWN
 %% "<integer> :unknown connection(s)"
-handle_numeric_reply(255, _Msg) ->
+handle_numeric_reply(253, _Msg) ->
     io:format("Reply for RPL_LUSERUNKNOWN no implemented yet.~n"),
     ok;
 
