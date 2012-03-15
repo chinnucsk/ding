@@ -245,10 +245,6 @@ handle(_Mod, #ircmsg{prefix=_P, command=_C, arguments=_A, tail=_T}=Msg) ->
 %%% to 399.
 %%%===================================================================
 
-not_implemented(Nr) ->
-    io:format("Reply code ~s is not yet implemented.",[Nr]).
-
-
 -spec handle_numeric_reply(Nr :: integer(), Msg :: #ircmsg{}) -> #ircmsg{} | ok.
 
 %%% The server sends Replies 001 to 004 to a user upon
@@ -262,14 +258,12 @@ handle_numeric_reply(002, _Msg) ->
     io:format("Reply for RPL_ not implemented.~n"),
     ok;
 %% RPL_CREATED
-io:format("Reply for  ok; not implemented.~n"),
-
 handle_numeric_reply(003, _Msg) ->
+    io:format("Reply for RPL_CREATED no implemented yet.~n"),
     ok;
 %% RPL_MYINFO
-io:format("Reply for  ok; not implemented.~n"),
-
 handle_numeric_reply(004, _Msg) ->
+    io:format("Reply for RPL_MYINFO no implemented yet.~n"),
     ok;
 
 %% Sent by the server to a user to suggest an alternative
