@@ -1,2 +1,0 @@
-glob:erlang/rebar
-glob:erlang/ebin/*.beam

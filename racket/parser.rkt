@@ -86,6 +86,7 @@
 
 ;(define ctcp-time '(58 68 101 118 78 117 108 108 33 115 101 114 118 105 99 101 115 64 100 121 110 97 115 116 121 110 101 116
 ;                       46 110 101 116 32 80 82 73 86 77 83 71 32 66 108 97 114 114 32 58 1 84 73 77 69 1))
+; this really isn't the best way to define IRC lines in the code. I should be able to do it with normal strings? Then again, the '1' char.
 
 (define (show-irc-msg IRCmsg)
   (displayln (IRCmsg-prefix IRCmsg))
