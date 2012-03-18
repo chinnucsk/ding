@@ -30,7 +30,8 @@
                 username, 
                 callbackmodule, 
                 passthrough=false,
-                connectionhelper=undefined
+                connectionhelper=undefined,
+                rawlogger=undefined
                }).
 
 %%%===================================================================
@@ -145,11 +146,17 @@ handle_info(timeout, #state{host=Host, port=Port, username=UserName, callbackmod
     gen_tcp:send(Sock, "\r\n"), 
     gen_tcp:send(Sock, "USER "++UserName++" "++UserName++" "++UserName++" "++UserName), 
     gen_tcp:send(Sock, "\r\n"), 
+    
+    %% spawn filelogger
+    LogPid = spawn(ltf, start, ["/home/gert/rawirclog.log"]),
+    io:format("filelogger at ~p~n",[LogPid]),
+
     %% spawn the helper process to keep pinging the server.
     %% needs to be its own module probably.
     ConHelpPid = spawn_link(connectionhelper, start, [Sock, self()]),
-    {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module, connectionhelper=ConHelpPid}};
-handle_info({tcp, _S, Data}, #state{socket=Sock, callbackmodule=Mod, passthrough=PT}=State) ->
+    {noreply, #state{socket=Sock, host=Host, port=Port, username=UserName, callbackmodule=Module, connectionhelper=ConHelpPid, rawlogger=LogPid}};
+handle_info({tcp, _S, Data}, #state{socket=Sock, callbackmodule=Mod, passthrough=PT, rawlogger=LP}=State) ->
+    LP ! {data, Data},
     Msg = ircmsg:parse_line(Data), 
     case PT of
         true -> 

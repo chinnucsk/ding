@@ -58,25 +58,26 @@ handle(_, _, _, _, Msg) ->
 %% I could just use regexes, but won't those be slow? Perhaps I need to benchmark.
 handle_privmsg(From, To, Msg) ->
     Tail = ircmsg:tail(Msg),
-    io:format("~s <~s> ~s",[To, From, Tail]),
-    R = binary:split(Tail, <<" ! ">>, [trim]),
-    case R of
-        [H|T] ->
-            case H of
-                <<"dingding">> ->
-                    parse_channel_command(T);
-                _ ->
-                    ok
-            end;
-        _ ->
-            ok
-    end.
+    io:format("~s <~s> ~s",[To, From, Tail]).
+
+%%     R = binary:split(Tail, <<" ! ">>, [trim]),
+%%     case R of
+%%         [H|T] ->
+%%             case H of
+%%                 <<"dingding">> ->
+%%                     parse_channel_command(T);
+%%                 _ ->
+%%                     ok
+%%             end;
+%%         _ ->
+%%             ok
+%%     end.
     
 
-parse_channel_command(Cmd) ->
-    R = binary:split(Cmd, <<" ">>),
-    case R of
-        [<<"say">>,B] ->
+%% parse_channel_command(Cmd) ->
+%%     R = binary:split(Cmd, <<" ">>),
+%%     case R of
+%%         [<<"say">>,B] ->
             
 
 
