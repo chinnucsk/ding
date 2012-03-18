@@ -11,5 +11,5 @@ read_from_irc(InPort, ParserThread) :-
 
 read_and_post(InPort, ParserThread) :-
 	repeat, read_line_to_codes(InPort, Codes),
-	thread_send_message(ParserThread, Codes), fail.
+	thread_send_message(ParserThread, Codes), fail.re
 
