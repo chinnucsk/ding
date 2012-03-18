@@ -1,0 +1,299 @@
+:adams.freenode.net NOTICE * :*** Looking up your hostname...
+:adams.freenode.net NOTICE * :*** Checking Ident
+:adams.freenode.net NOTICE * :*** Found your hostname
+:adams.freenode.net NOTICE * :*** No Ident response
+:adams.freenode.net 001 dingding :Welcome to the freenode Internet Relay Chat Network dingding
+:adams.freenode.net 002 dingding :Your host is adams.freenode.net[94.125.182.252/6667], running version ircd-seven-1.1.3
+:adams.freenode.net 003 dingding :This server was created Sat Mar 10 2012 at 14:55:48 CET
+:adams.freenode.net 004 dingding adams.freenode.net ircd-seven-1.1.3 DOQRSZaghilopswz CFILMPQbcefgijklmnopqrstvz bkloveqjfI
+:adams.freenode.net 005 dingding CHANTYPES=# EXCEPTS INVEX CHANMODES=eIbq,k,flj,CFLMPQcgimnprstz CHANLIMIT=#:120 PREFIX=(ov)@+ MAXLIST=bqeI:100 MODES=4 NETWORK=freenode KNOCK STATUSMSG=@+ CALLERID=g :are supported by this server
+:adams.freenode.net 005 dingding CASEMAPPING=rfc1459 CHARSET=ascii NICKLEN=16 CHANNELLEN=50 TOPICLEN=390 ETRACE CPRIVMSG CNOTICE DEAF=D MONITOR=100 FNC TARGMAX=NAMES:1,LIST:1,KICK:1,WHOIS:1,PRIVMSG:4,NOTICE:4,ACCEPT:,MONITOR: :are supported by this server
+:adams.freenode.net 005 dingding EXTBAN=$,arx WHOX CLIENTVER=3.0 SAFELIST ELIST=CTU :are supported by this server
+:adams.freenode.net 251 dingding :There are 239 users and 62560 invisible on 28 servers
+:adams.freenode.net 252 dingding 39 :IRC Operators online
+:adams.freenode.net 253 dingding 8 :unknown connection(s)
+:adams.freenode.net 254 dingding 39027 :channels formed
+:adams.freenode.net 255 dingding :I have 5331 clients and 1 servers
+:adams.freenode.net 265 dingding 5331 7598 :Current local users 5331, max 7598
+:adams.freenode.net 266 dingding 62799 79475 :Current global users 62799, max 79475
+:adams.freenode.net 250 dingding :Highest connection count: 7599 (7598 clients) (194694 connections received)
+:adams.freenode.net 375 dingding :- adams.freenode.net Message of the Day - 
+:adams.freenode.net 372 dingding :- Welcome to adams.freenode.net. Thanks to ATW Internet Kft 
+:adams.freenode.net 372 dingding :- (http://www.atw.hu) for sponsoring this server!
+:adams.freenode.net 372 dingding :-  
+:adams.freenode.net 372 dingding :- ADAMS, DOUGLAS (1952-2001).  Author of The Hitch Hikers Guide
+:adams.freenode.net 372 dingding :- to the Galaxy and many other witty and humourous books,
+:adams.freenode.net 372 dingding :- portrayed in his uniquely British irony. He is sorely missed
+:adams.freenode.net 372 dingding :- by many millions of devoted fans. "So long and thanks for all
+:adams.freenode.net 372 dingding :- the books!"
+:adams.freenode.net 372 dingding :-  
+:adams.freenode.net 372 dingding :- You're using freenode, a service of Peer-Directed Projects
+:adams.freenode.net 372 dingding :- Center Ltd (http://freenode.net/pdpc.shtml).
+:adams.freenode.net 372 dingding :-  
+:adams.freenode.net 372 dingding :- By connecting to freenode you indicate that you have read
+:adams.freenode.net 372 dingding :- and agree to adhere to our policies and procedures as per
+:adams.freenode.net 372 dingding :- the website (http://freenode.net). We would like to remind
+:adams.freenode.net 372 dingding :- you that unauthorized public logging of channels on the
+:adams.freenode.net 372 dingding :- network is prohibited. Public channel logging should only
+:adams.freenode.net 372 dingding :- take place where the channel owner(s) has requested this
+:adams.freenode.net 372 dingding :- and users of the channel are all made aware (if you are
+:adams.freenode.net 372 dingding :- publically logging your channel, you may wish to keep a
+:adams.freenode.net 372 dingding :- notice in topic and perhaps as a on-join message).
+:adams.freenode.net 372 dingding :-  
+:adams.freenode.net 372 dingding :- freenode runs an open proxy scanner. Your use of the network
+:adams.freenode.net 372 dingding :- indicates your acceptance of this policy. For details on
+:adams.freenode.net 372 dingding :- freenode network policy, please take a look at our policy
+:adams.freenode.net 372 dingding :- page (http://freenode.net/policy.shtml). Thank you for using
+:adams.freenode.net 372 dingding :- the network!
+:adams.freenode.net 372 dingding :-  
+:adams.freenode.net 372 dingding :- Don't forget to check out these other Peer-Directed Projects:
+:adams.freenode.net 372 dingding :- FOSSCON [http://www.fosscon.org] and fossevents 
+:adams.freenode.net 372 dingding :- [http://www.fossevents.org], and soon we'll repeat last years 
+:adams.freenode.net 372 dingding :- success with Picnics for Geeks across the globe, more info at 
+:adams.freenode.net 372 dingding :- [http://geeknic.org]
+:adams.freenode.net 372 dingding :-  
+:adams.freenode.net 372 dingding :- freenode is a service of Peer-Directed Projects Center Ltd,
+:adams.freenode.net 372 dingding :- a not for profit organisation registered in England and Wales.
+:adams.freenode.net 372 dingding :-  
+:adams.freenode.net 372 dingding :- If you support the work we do and wish to donate to the PDPC, 
+:adams.freenode.net 372 dingding :- you may do so over at http://freenode.net/pdpc_donations.shtml
+:adams.freenode.net 372 dingding :-  
+:adams.freenode.net 372 dingding :- Thank you for using freenode!
+:adams.freenode.net 372 dingding :-  
+:adams.freenode.net 372 dingding :- ***************************************************************
+:adams.freenode.net 372 dingding :- Please read http://blog.freenode.net/2010/11/be-safe-out-there/
+:adams.freenode.net 372 dingding :- ***************************************************************
+:adams.freenode.net 376 dingding :End of /MOTD command.
+:dingding MODE dingding :+i
+:NickServ!NickServ@services. NOTICE dingding :This nickname is registered. Please choose a different nickname, or identify via /msg NickServ identify <password>.
+:dingding!~dingding@178-119-231-110.access.telenet.be JOIN #erlounge
+:adams.freenode.net 332 dingding #erlounge : Relax it's #erLounge | all r links r belong to yrashk | https://github.com/spawngrid/htoad | https://github.com/spawngrid/seqbind | http://erlang.org/eeps/eep-0039.html | Latest:  R15B@github.com/erlang/otp | spawnfest.com |  learnyousomeerlang.com | github.com/ehttpi | erldocs.com  | erlagner.org | github.com/okeuday/CloudI
+:adams.freenode.net 333 dingding #erlounge DeadZen!~deadzen@deadzen.com 1328259184
+:adams.freenode.net 353 dingding = #erlounge :dingding DeadZen daniel_karlsson ttmrichter chops Licenser Amadiro puzza007 MononcQc jodaro mlb- cath_ athoune hirsch_ Gertm ftrvxmtrx hq1 EvilJStoker rausch nox pizza__ bobry +essen burbas okeuday skarab omarkj Striki si14 RJ2 MetaCosm mst micro_ klaar joewilliams lefant ion peerst urbanserj p_l GEEK1 chops_ dennyabraham otakup0pe alisdair azariah4 evax bfrog +jlouis +Erlang zdzblo +yrashk tOkeshu benoitc freakazoid
+:adams.freenode.net 366 dingding #erlounge :End of /NAMES list.
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:Gertm!~Gertm@dD5768144.access.telenet.be PRIVMSG dingding :VERSION
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :how do I add it to the app.src file?
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :it's a bit of a "lll" mess, should one use prefixes for app and module names?
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :daniel_karlsson: under the {applications, [kernel, stdlib]}. key
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :daniel_karlsson: you don't have to keep it consistent but it's good code hygiene
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :(trying do get it right on this side.. )
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :klaar: if you add it to your .app.src do you really need to add it to your reltool.config as well?
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :dependent modules are included afterall
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :s/module/apps/
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :DeadZen: i blindly trust jlouis getting it right
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :;p
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :well i dont actually think thats common knowledge
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :you don't have to put anything in reltool.config if you properly setup your app.src
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :DeadZen: that's how it should work though
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :agreed
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :iirc rebar was changed to set {incl_cond, exclude} in the example a while back
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :last year even https://github.com/basho/rebar/commit/0bdda5baa18bb787a967aad859b5e73f12c657f1
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :we're not talkin included_applications right?
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :i just mean the {applications, [..]}  will be picked up by reltool
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :DeadZen: haha, had to google included_applications dammit
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :hehe
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :Tried to add erlydtl in different ways, right now it's included in the applications key in app.src and also {app, erlydtl, [{incl_cond, include}]} in rebar.config
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :daniel_karlsson: cool, that ought to work
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :but get ==> rel (generate)
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :{"init terminating in do_boot","Application compiler is used in release lll_hannibal and cannot be excluded"}
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :and then a monster crash log
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :daniel_karlsson: do you have this "{incl_cond, exclude}" line in your reltool.config?
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :yes
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :if so, you must add all of erlydtl's dependencies to your reltool.config as well
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :https://gist.github.com/2070028
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :why are lipo batteries pronounced lypo?
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :basically, add compiler as well, keep doing it until it works
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :no one pronounces it lythium
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :DeadZen: i like you're for pronouncing the letter i the way it's supposed to sound
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :lol
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :admittedly, one would also sound like an idiot sticking to that pronunciation for each use of it :D
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :yah leepo sounds retarded
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :or eyee-Pad
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :but for instance lipoflavanoid
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :some do pronounce it
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :leepo
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :daniel_karlsson: did you make your way through dependency hell yet?
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :and on this farm he had some turtlenecks, e-i e-i pad
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :Yay, got it working. Thanks very much.
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :daniel_karlsson: hehe, PERFECT timing
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :no problem :)
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :is there a term for racism against computers?
+:daniel_karlsson!~kardan@c83-248-130-218.bredband.comhem.se PRIVMSG #erlounge :not anymore :-)
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:Gertm!~Gertm@dD5768144.access.telenet.be PRIVMSG dingding :TIME
+:Gertm!~Gertm@dD5768144.access.telenet.be PRIVMSG #erlounge :ACTION tests dingding for ctcp stuffs
+:Gertm!~Gertm@dD5768144.access.telenet.be PRIVMSG #erlounge : /me is also a ctcp, so..
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :sure?
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:kvakvs!~kv@109.122.9.213 JOIN #erlounge
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:yrashk!~yrashk@office.spawngrid.com PRIVMSG #erlounge :ACTION is so tired
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :only 6am
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :btw this movie the Ledge is pretty good
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :liv tyler shows her boobies
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:kvakvs!~kv@109.122.9.213 QUIT :Remote host closed the connection
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:kvakvs!~kv@109.122.9.213 JOIN #erlounge
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:kvakvs!~kv@109.122.9.213 QUIT :Client Quit
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:kvakvs!~kv@109.122.9.213 JOIN #erlounge
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :DeadZen: i wish that'd be in the summary on imdb
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :yah i was pleasantly surprised
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :i didn't even know she ever took it off before
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :kind of a depressing movie
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:asabil!~asabil@131.246.16.62.customer.cdi.no JOIN #erlounge
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :DeadZen: it looked depressing
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :http://www.imdb.com/title/tt1465522/
+:Erlang!~Erlang@deadzen.com PRIVMSG #erlounge :Tucker and Dale vs Evil (2010) - IMDb (0.81s)
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :http://www.youtube.com/watch?v=9Ib7rDds5jk
+:Erlang!~Erlang@deadzen.com PRIVMSG #erlounge :Tucker and Dale vs Evil - After an unfortunate meeting with a wood chipper - "You OK?" - YouTube (0.18s)
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:klaar!u3039@gateway/web/irccloud.com/x-kaqkguqfbujnnyhh PRIVMSG #erlounge :pretty much sums up the whole movie
+:DeadZen!~deadzen@deadzen.com PRIVMSG #erlounge :hehe
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
+:adams.freenode.net PONG adams.freenode.net :DingBotConnCheck
