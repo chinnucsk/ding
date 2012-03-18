@@ -1,7 +1,7 @@
 #lang racket
 
 (provide (struct-out IRCmsg))
-(provide parse-irc-line to-string to-bytes get-nick)
+(provide parse-line parse-irc-line to-string to-bytes get-nick)
 (provide parser-tests)
 
 (require srfi/1)
@@ -149,11 +149,11 @@
                   (cond [is-ctcp-req (string->bytes/utf-8 "PRIVMSG ")]
                         [is-ctcp-rep (string->bytes/utf-8 "NOTICE ")]
                         [is-action (string->bytes/utf-8 "ACTION ")]
-                        [(not is-ctcp) (string->bytes/utf-8 " ")])
+                        [(not is-ctcp) (string->bytes/utf-8 (string-append cmd " "))])
                   (get-params ircmsg)
                   (if is-ctcp
-                      (bytes-append #" :" #"\1" (get-tail ircmsg) #"\1\n")
-                      (bytes-append #" :" (get-tail ircmsg) #"\n")))))
+                      (bytes-append #":" #"\1" (get-tail ircmsg) #"\1\n")
+                      (bytes-append #":" (get-tail ircmsg) #"\n")))))
 
 
 (define parser-tests
