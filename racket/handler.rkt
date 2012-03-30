@@ -27,5 +27,3 @@
   (displayln line)
   (for-each (lambda (x) (apply-handler x (parse-irc-line line))) handlers))
 
-
-

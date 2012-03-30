@@ -7,8 +7,12 @@
 
 (define irc-recv (make-async-channel))
 (define irc-send (make-async-channel))
+(define reconnect (make-async-channel))
 
 (define loggedin #f)
+(define last-pong-time (current-seconds))
+
+(define current-router #f)
 
 (define (read-and-queue in rcv)
   "Reads from the in-port and puts the lines into the rcv queue"
@@ -21,9 +25,11 @@
   (displayln "Connecting")
   (let-values ([(in out) (tcp-connect host port)])
     (file-stream-buffer-mode out 'line)
-    (thread (lambda () (irc-router out irc-recv irc-send)))
+    (when (thread? current-router)
+        (kill-thread current-router))
+    (set! current-router (thread (lambda () (irc-router out irc-recv irc-send))))
     (displayln "starting receive loop")
-    (login "dingding")
+    (login "dingd!ng")
     (with-handlers ([exn:fail? (lambda (exn) (connect-to-irc host port rcv snd))])
       (read-and-queue in rcv))))
 
@@ -41,7 +47,10 @@
             (displayln (string-append "-> " msg))
             (write-bytes (bytes-append (to-bytes msg) #"\n") out-port))))
     (when (and (not ln) (not msg))
-      (sleep 0.05))
+      (begin
+        (when (> (- (current-seconds) last-pong-time) 55)
+          (async-channel-put reconnect #t))
+        (sleep 0.05)))
     (irc-router out-port rcv snd)))
 
 (define (reply msg)
@@ -58,5 +67,11 @@
     (reply (IRCmsg "" "JOIN" "#yfl" ""))
     (set! loggedin #t)))
 
-(define (connect-to-freenode)
+(define (connection-checker seconds)
+  (reply (IRCmsg "" "PONG" "" "DingDing"))
+  (sleep seconds)
+  (connection-checker seconds))
+
+(define (connect-to-freenode) 
+  (thread (lambda () (connection-checker 55)))  
   (connect-to-irc "irc.freenode.net" 6667 irc-recv irc-send))
