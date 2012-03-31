@@ -1,5 +1,5 @@
-Ding
-====
+This project has moved to https://bitbucket.org/gertm/ding !!!
+==============================================================
 
 An attempt at writing an IRC bot for the polyglot programmer channel I'm in on Freenode.
 Currently building in Racket and Erlang, but mostly Erlang.
