@@ -1,4 +1,4 @@
-This project has moved to https://bitbucket.org/gertm/ding !!!
+This project has moved to http://fossil.gertm.eu/dingding !!!
 ==============================================================
 
 An attempt at writing an IRC bot for the polyglot programmer channel I'm in on Freenode.
@@ -16,12 +16,5 @@ Not sure the other languages are going to get a lot of work any time soon since 
 
 Notes
 -----
-* You need Erlang R15 for the Erlang version to work.
+* You need Erlang R15 or higher for the Erlang version to work.
 * The Erlang version will also be a bot-framework. There is an example implementation but you should be able to build your own on top of girc.erl
-
-Erlang Todo
------------
-
-* Config file
-* Use other nick when nick is in use.
-* Basicly make sure the bot can stay connected at all times.
